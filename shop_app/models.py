@@ -133,3 +133,63 @@ class Product(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.model})'
+
+
+class Parameter(models.Model):
+    """
+    Справочник названий характеристик.
+    Используется для реализации динамических (настраиваемых) полей товаров.
+    Например: "Диагональ (дюйм)", "Цвет", "Встроенная память (Гб)".
+    """
+    name = models.CharField(
+        max_length=100,
+        verbose_name='Название характеристики',
+        unique=True,
+        help_text='Название свойства товара (например: "Диагональ (дюйм)")'
+    )
+
+    class Meta:
+        verbose_name = 'Параметр'
+        verbose_name_plural = 'Параметры'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class ProductParameter(models.Model):
+    """
+    Связь товара с его характеристиками.
+    """
+    product = models.ForeignKey(
+        Product,
+        verbose_name='Продукт',
+        related_name='product_parameters',
+        on_delete=models.CASCADE,
+        help_text='Товар, к которому привязана характеристика'
+    )
+    parameter = models.ForeignKey(
+        Parameter,
+        verbose_name='Параметр',
+        related_name='product_parameters',
+        on_delete=models.CASCADE,
+        help_text='Наименование характеристики из справочника'
+    )
+    value = models.CharField(
+        max_length=255,
+        verbose_name='Значение',
+        help_text='Значение характеристики (например: "6.5" или "золотистый")'
+    )
+
+    class Meta:
+        verbose_name = 'Параметр товара'
+        verbose_name_plural = 'Параметры товаров'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product', 'parameter'],
+                name='unique_parameter_for_product'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.product.name} - {self.parameter.name}: {self.value}'
