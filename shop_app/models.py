@@ -12,7 +12,7 @@ class Shop(models.Model):
         max_length=100,
         verbose_name='Название',
         unique=True,
-        help_text='Уникальное название магазина \ поставщика'
+        help_text='Уникальное название магазина (поставщика)'
     )
     url = models.URLField(
         verbose_name='Ссылка',
