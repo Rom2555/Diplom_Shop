@@ -1,3 +1,5 @@
+import uuid
+
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -353,3 +355,32 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f'{self.product.name} (x{self.quantity})'
+
+
+class ConfirmEmailToken(models.Model):
+    """
+    Токен для подтверждения email пользователя при регистрации.
+    """
+    user = models.ForeignKey(
+        'auth.User',
+        verbose_name='Пользователь',
+        related_name='confirm_email_tokens',
+        on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания токена'
+    )
+    # Генерация случайного ключа при создании объекта
+    key = models.UUIDField(
+        verbose_name='Ключ',
+        default=uuid.uuid4,
+        unique=True
+    )
+
+    class Meta:
+        verbose_name = 'Токен подтверждения Email'
+        verbose_name_plural = 'Токены подтверждения Email'
+
+    def __str__(self):
+        return f'Token for {self.user.username}'
