@@ -193,3 +193,163 @@ class ProductParameter(models.Model):
 
     def __str__(self):
         return f'{self.product.name} - {self.parameter.name}: {self.value}'
+
+
+class Contact(models.Model):
+    """
+    Адреса доставки пользователей.
+    Один пользователь может иметь несколько адресов для оформления заказов.
+    """
+    user = models.ForeignKey(
+        'auth.User',
+        verbose_name='Пользователь',
+        related_name='contacts',
+        on_delete=models.CASCADE,
+        help_text='Владелец адреса доставки'
+    )
+    city = models.CharField(
+        max_length=50,
+        verbose_name='Город',
+        help_text='Город доставки'
+    )
+    street = models.CharField(
+        max_length=100,
+        verbose_name='Улица',
+        help_text='Улица доставки'
+    )
+    house = models.CharField(
+        max_length=15,
+        verbose_name='Дом',
+        blank=True,
+        help_text='Номер дома'
+    )
+    structure = models.CharField(
+        max_length=15,
+        verbose_name='Корпус',
+        blank=True,
+        help_text='Номер корпуса'
+    )
+    building = models.CharField(
+        max_length=15,
+        verbose_name='Строение',
+        blank=True,
+        help_text='Номер строения'
+    )
+    apartment = models.CharField(
+        max_length=15,
+        verbose_name='Квартира',
+        blank=True,
+        help_text='Номер квартиры')
+
+    phone = models.CharField(
+        max_length=20,
+        verbose_name='Телефон',
+        help_text='Контактный номер телефона'
+    )
+
+    class Meta:
+        verbose_name = 'Контакт'
+        verbose_name_plural = 'Контакты'
+
+    def __str__(self):
+        return f'{self.city}, ул. {self.street}, д. {self.house}'
+
+
+class Order(models.Model):
+    """
+    Модель заказа.
+    Статус 'basket' используется для реализации функционала корзины покупок.
+    Остальные статусы отражают жизненный цикл заказа.
+    """
+    STATUS_CHOICES = (
+        ('basket', 'Статус корзины'),
+        ('new', 'Новый'),
+        ('confirmed', 'Подтвержден'),
+        ('assembled', 'Собран'),
+        ('sent', 'Отправлен'),
+        ('delivered', 'Доставлен'),
+        ('canceled', 'Отменен'),
+    )
+
+    user = models.ForeignKey(
+        'auth.User',
+        verbose_name='Пользователь',
+        related_name='orders',
+        on_delete=models.CASCADE,
+        db_index=True,
+        help_text='Покупатель, оформивший заказ'
+    )
+    dt = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания'
+    )
+
+    state = models.CharField(
+        max_length=15,
+        verbose_name='Статус',
+        choices=STATUS_CHOICES,
+        default='basket',
+        db_index=True,
+        help_text='Текущий статус заказа'
+    )
+    contact = models.ForeignKey(
+        Contact,
+        verbose_name='Контакт',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text='Адрес доставки (заполняется при подтверждении заказа из корзины)'
+    )
+
+    class Meta:
+        verbose_name = 'Заказ'
+        verbose_name_plural = 'Заказы'
+        ordering = ('-dt',)
+
+    def __str__(self):
+        return f'Заказ №{self.id} от {self.dt.strftime("%d.%m.%Y %H:%M")}'
+
+
+class OrderItem(models.Model):
+    """
+    Состав заказа (позиции).
+    Дублирует поле shop для возможности быстрой группировки товаров
+    по поставщикам при формировании накладных.
+    """
+    order = models.ForeignKey(
+        Order,
+        verbose_name='Заказ',
+        related_name='ordered_items',
+        on_delete=models.CASCADE,
+        help_text='Заказ, в который входит данная позиция'
+    )
+    product = models.ForeignKey(
+        Product,
+        verbose_name='Продукт',
+        on_delete=models.PROTECT,
+        help_text='Ссылка на карточку товара'
+    )
+    shop = models.ForeignKey(
+        Shop,
+        verbose_name='Магазин',
+        on_delete=models.PROTECT,
+        help_text='Поставщик данного товара в момент заказа'
+    )
+    quantity = models.PositiveIntegerField(
+        verbose_name='Количество',
+        help_text='Заказанное количество'
+    )
+
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='Цена',
+        help_text='Цена за единицу товара на момент оформления'
+    )
+
+    class Meta:
+        verbose_name = 'Позиция заказа'
+        verbose_name_plural = 'Позиции заказа'
+
+    def __str__(self):
+        return f'{self.product.name} (x{self.quantity})'
