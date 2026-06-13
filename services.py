@@ -1,4 +1,4 @@
-from shop_app.models import Shop, Category, Product
+from shop_app.models import Shop, Category, Product, Parameter, ProductParameter
 
 
 def import_shop_data_from_yaml(yaml_data):
@@ -10,7 +10,7 @@ def import_shop_data_from_yaml(yaml_data):
         return {'Status': False, 'Error': 'В файле не указано название магазина'}
 
     # Создание магазина
-    shop, is_created = Shop.objects.get_or_create(
+    shop, _ = Shop.objects.get_or_create(
         name=shop_name,
         defaults={'state': True}
     )
@@ -29,7 +29,7 @@ def import_shop_data_from_yaml(yaml_data):
     for item in yaml_data.get('goods', []):
         category = Category.objects.get(id=item['category'], shop=shop)
 
-        Product.objects.get_or_create(
+        product, _ = Product.objects.get_or_create(
             id=item['id'],
             defaults={
                 'name': item['name'],
@@ -40,5 +40,18 @@ def import_shop_data_from_yaml(yaml_data):
                 'quantity': item['quantity']
             }
         )
+
+        # Загрузка характеристик товара
+        parameters_data = item.get('parameters', {})
+        for param_name, param_value in parameters_data.items():
+            # Получение или создание названия характеристики (например, Диагональ (дюйм))
+            param, _ = Parameter.objects.get_or_create(name=param_name)
+
+            # Привязка значения к товару.
+            ProductParameter.objects.update_or_create(
+                product=product,
+                parameter=param,
+                defaults={'value': str(param_value)}  # строка
+            )
 
     return {'Status': True}
