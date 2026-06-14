@@ -3,8 +3,9 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from shop_app.serializers import YAMLUploadSerializer
+from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer
 from shop_app.services import import_shop_data_from_yaml
 
 
@@ -61,3 +62,28 @@ class PartnerUpdate(APIView):
             return Response({'Status': True}, status=status.HTTP_200_OK)
         else:
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RegisterAccount(APIView):
+    """
+    Регистрация нового пользователя с выдачей JWT токенов
+    """
+
+    def post(self, request, *args, **kwargs):
+        serializer = RegisterSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = serializer.save()
+
+        # Генерация JWT токенов
+        refresh = RefreshToken.for_user(user)
+
+        return Response(
+            {
+                'Status': True,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token)
+            },
+            status=status.HTTP_201_CREATED
+        )
