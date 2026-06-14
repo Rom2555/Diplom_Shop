@@ -1,6 +1,10 @@
+from django.db import transaction
+
 from shop_app.models import Shop, Category, Product, Parameter, ProductParameter
 
 
+# Декоратор транзакции
+@transaction.atomic
 def import_shop_data_from_yaml(yaml_data):
     """
     Функция импорта товаров из YAML
@@ -24,6 +28,9 @@ def import_shop_data_from_yaml(yaml_data):
                 'shop': shop
             }
         )
+
+    # Удаление старых товаров магазина перед обновлением прайса
+    Product.objects.filter(category__shop=shop).delete()
 
     # Загрузка товаров
     for item in yaml_data.get('goods', []):
