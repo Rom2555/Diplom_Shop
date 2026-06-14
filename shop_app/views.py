@@ -11,7 +11,17 @@ from shop_app.services import import_shop_data_from_yaml
 # Для Swagger
 @extend_schema(
     request={
-        'multipart/form-data': YAMLUploadSerializer
+        'multipart/form-data': {
+            'type': 'object',
+            'properties': {
+                'file': {
+                    'type': 'string',
+                    'format': 'binary',
+                    'description': 'YAML файл с прайс-листом поставщика'
+                }
+            },
+            'required': ['file']
+        }
     },
     responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
 )
