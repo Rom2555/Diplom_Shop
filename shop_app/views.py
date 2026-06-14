@@ -10,7 +10,9 @@ from shop_app.services import import_shop_data_from_yaml
 
 # Для Swagger
 @extend_schema(
-    request=YAMLUploadSerializer,
+    request={
+        'multipart/form-data': YAMLUploadSerializer
+    },
     responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
 )
 class PartnerUpdate(APIView):
