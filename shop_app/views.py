@@ -1,16 +1,23 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 import yaml
+from drf_spectacular.utils import extend_schema
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from shop_app.services import import_shop_data_from_yaml
 from shop_app.serializers import YAMLUploadSerializer
+from shop_app.services import import_shop_data_from_yaml
 
 
+# Для Swagger
+@extend_schema(
+    request=YAMLUploadSerializer,
+    responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
+)
 class PartnerUpdate(APIView):
     """
     Класс для обновления прайса от поставщика (импорт YAML файла).
     """
+
     def post(self, request, *args, **kwargs):
         # Валидация входящих данных через сериализатор
         serializer = YAMLUploadSerializer(data=request.data)
