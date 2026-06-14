@@ -64,6 +64,15 @@ class PartnerUpdate(APIView):
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Для Swagger
+@extend_schema(
+    request=RegisterSerializer,
+    responses={201: {'type': 'object', 'properties': {
+        'Status': {'type': 'boolean'},
+        'refresh': {'type': 'string'},
+        'access': {'type': 'string'}
+    }}}
+)
 class RegisterAccount(APIView):
     """
     Регистрация нового пользователя с выдачей JWT токенов
