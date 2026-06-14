@@ -11,6 +11,7 @@ from shop_app.services import import_shop_data_from_yaml
 
 # Для Swagger
 @extend_schema(
+    auth=[],
     request={
         'multipart/form-data': {
             'type': 'object',
@@ -66,6 +67,7 @@ class PartnerUpdate(APIView):
 
 # Для Swagger
 @extend_schema(
+    auth=[],
     request=RegisterSerializer,
     responses={201: {'type': 'object', 'properties': {
         'Status': {'type': 'boolean'},
