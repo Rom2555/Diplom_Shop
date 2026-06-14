@@ -143,14 +143,33 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-# Настройки DRF и Swagger
+# Настройки DRF и JWT
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
+# Срок жизни токенов. Access токен живет 1 час, Refresh - 1 день.
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+
+# Настройки Swagger
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Diplom Shop API',
     'DESCRIPTION': 'API для автоматизации закупок',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SECURITY': [{'bearerAuth': []}],
+    'COMPONENT_SECURITY_SCHEMES': {
+        'bearerAuth': {
+            'type': 'http',
+            'scheme': 'bearer',
+            'bearerFormat': 'JWT',
+        }
+    }
 }
