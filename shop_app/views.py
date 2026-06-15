@@ -1,7 +1,7 @@
 import yaml
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
-from rest_framework.generics import ListAPIView
+from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -101,11 +101,9 @@ class RegisterAccount(APIView):
         )
 
 
-@extend_schema(auth=[])
-class ProductListView(ListAPIView):
+class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    Класс для просмотра каталога товаров.
-    Выводит весь список
+    Просмотр каталога товаров и информации по товару
     """
     queryset = Product.objects.all().select_related('category').prefetch_related('product_parameters')
     serializer_class = ProductSerializer
