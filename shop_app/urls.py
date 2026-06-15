@@ -21,5 +21,5 @@ urlpatterns = [
     path('user/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # Подключение роутера с ViewSet
-    path('api/v1/', include(router.urls)),
+    path('', include(router.urls)),
 ]

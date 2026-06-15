@@ -14,6 +14,7 @@ from .serializers import ProductSerializer
 
 @extend_schema(
     auth=[],
+    tags=['Partner'],
     request={
         'multipart/form-data': {
             'type': 'object',
@@ -68,6 +69,7 @@ class PartnerUpdate(APIView):
 
 
 @extend_schema(
+    tags=['User'],
     auth=[],
     request=RegisterSerializer,
     responses={201: {'type': 'object', 'properties': {
@@ -101,6 +103,10 @@ class RegisterAccount(APIView):
         )
 
 
+@extend_schema(
+    tags=['Products'],
+    auth=[],
+)
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Просмотр каталога товаров и информации по товару
