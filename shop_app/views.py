@@ -1,12 +1,15 @@
 import yaml
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from shop_app.models import Product
 from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer
 from shop_app.services import import_shop_data_from_yaml
+from .serializers import ProductSerializer
 
 
 # Для Swagger
@@ -98,3 +101,12 @@ class RegisterAccount(APIView):
             },
             status=status.HTTP_201_CREATED
         )
+
+
+class ProductListView(ListAPIView):
+    """
+    Класс для просмотра каталога товаров.
+    Выводит весь список
+    """
+    queryset = Product.objects.all().select_related('category').prefetch_related('product_parameters')
+    serializer_class = ProductSerializer
