@@ -12,7 +12,6 @@ from shop_app.services import import_shop_data_from_yaml
 from .serializers import ProductSerializer
 
 
-# Для Swagger
 @extend_schema(
     auth=[],
     request={
@@ -68,7 +67,6 @@ class PartnerUpdate(APIView):
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Для Swagger
 @extend_schema(
     auth=[],
     request=RegisterSerializer,
@@ -103,6 +101,7 @@ class RegisterAccount(APIView):
         )
 
 
+@extend_schema(auth=[])
 class ProductListView(ListAPIView):
     """
     Класс для просмотра каталога товаров.
