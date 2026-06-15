@@ -2,6 +2,7 @@ import yaml
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -34,7 +35,7 @@ class PartnerUpdate(APIView):
     """
     Класс для обновления прайса от поставщика (импорт YAML файла).
     """
-
+    permission_classes = [AllowAny] # Права доступа для всех
     def post(self, request, *args, **kwargs):
         # Валидация входящих данных через сериализатор
         serializer = YAMLUploadSerializer(data=request.data)
@@ -82,7 +83,7 @@ class RegisterAccount(APIView):
     """
     Регистрация нового пользователя с выдачей JWT токенов
     """
-
+    permission_classes = [AllowAny] # Права доступа для всех
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
         if not serializer.is_valid():
