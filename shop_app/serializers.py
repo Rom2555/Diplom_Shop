@@ -101,7 +101,6 @@ class BasketSerializer(serializers.ModelSerializer):
         return sum(item.quantity * item.price for item in obj.ordered_items.all())
 
 
-
 class AddToBasketSerializer(serializers.Serializer):
     """
     Сериализатор для валидации данных при добавлении товара в корзину

@@ -147,11 +147,6 @@ class ContactViewSet(viewsets.ModelViewSet):
 
 @extend_schema(
     tags=['Basket'],
-    request=AddToBasketSerializer,  # для POST
-    # для DELETE
-    responses={
-        200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}
-    }
 )
 class BasketAPIView(APIView):
     """
@@ -173,6 +168,12 @@ class BasketAPIView(APIView):
         serializer = BasketSerializer(basket)
         return Response({'Status': True, 'Basket': serializer.data})
 
+    @extend_schema(
+        request=AddToBasketSerializer,
+        responses={
+            200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}
+        }
+    )
     def post(self, request, *args, **kwargs):
         # Валидация входящих данных
         serializer = AddToBasketSerializer(data=request.data)
@@ -231,22 +232,31 @@ class BasketAPIView(APIView):
         except Product.DoesNotExist:
             return Response({'Status': False, 'Errors': 'Товар не найден'}, status=404)
 
-    def delete(self, request, *args, **kwargs):
-        items_id = request.data.get('items_id')
 
-        if not items_id:
-            return Response({'Status': False, 'Errors': 'Не введен ID позиции (items_id)'}, status=400)
+
+        except OrderItem.DoesNotExist:
+            return Response({'Status': False, 'Errors': 'Позиция не найдена в корзине'}, status=404)
+
+
+class BasketDeleteView(APIView):
+    """Удаление товара из корзины по ID в URL"""
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=['Basket'],
+        responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
+    )
+    def delete(self, request, *args, **kwargs):
+        # ID из URL
+        items_id = kwargs.get('items_id')
 
         try:
-            # Поиск позиции в корзине
             item = OrderItem.objects.get(
                 id=items_id,
                 order__user=request.user,
                 order__state='basket'
             )
-            # Удаление
             item.delete()
             return Response({'Status': True})
-
         except OrderItem.DoesNotExist:
             return Response({'Status': False, 'Errors': 'Позиция не найдена в корзине'}, status=404)
