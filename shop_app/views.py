@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from shop_app.models import Product, Contact
-from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer, ContactSerializer
+from shop_app.models import Product, Contact, Order
+from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer, ContactSerializer, BasketSerializer
 from shop_app.services import import_shop_data_from_yaml
 from .serializers import ProductSerializer
 
@@ -35,7 +35,8 @@ class PartnerUpdate(APIView):
     """
     Класс для обновления прайса от поставщика (импорт YAML файла).
     """
-    permission_classes = [AllowAny] # Права доступа для всех
+    permission_classes = [AllowAny]  # Права доступа для всех
+
     def post(self, request, *args, **kwargs):
         # Валидация входящих данных через сериализатор
         serializer = YAMLUploadSerializer(data=request.data)
@@ -83,7 +84,8 @@ class RegisterAccount(APIView):
     """
     Регистрация нового пользователя с выдачей JWT токенов
     """
-    permission_classes = [AllowAny] # Права доступа для всех
+    permission_classes = [AllowAny]  # Права доступа для всех
+
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
         if not serializer.is_valid():
@@ -125,7 +127,7 @@ class ContactViewSet(viewsets.ModelViewSet):
     Доступно только авторизованным пользователям
     """
 
-    permission_classes = [IsAuthenticated] # Допускает только пользователей с токеном
+    permission_classes = [IsAuthenticated]  # Допускает только пользователей с токеном
     serializer_class = ContactSerializer
 
     # http методы только GET/POST/DELETE (кроме PUT/PATCH)
@@ -140,3 +142,24 @@ class ContactViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # Автопривязка контактов к пользователю
         serializer.save(user=self.request.user)
+
+
+class BasketAPIView(APIView):
+    """
+    Класс для работы с корзиной пользователя
+    """
+    permission_classes = [IsAuthenticated] # Допускает только пользователей с токеном
+
+    def get(self, request, *args, **kwargs):
+        # Поиск статуса 'basket' у пользователя
+        basket = Order.objects.filter(
+            user=request.user,
+            state='basket'
+        ).prefetch_related('ordered_items__product').first()
+
+        # Если корзины нет - вернуть пустой объект
+        if not basket:
+            return Response({'Status': True, 'Basket': []})
+
+        serializer = BasketSerializer(basket)
+        return Response({'Status': True, 'Basket': serializer.data})
