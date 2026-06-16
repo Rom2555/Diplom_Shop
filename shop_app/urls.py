@@ -9,7 +9,7 @@ router = DefaultRouter()
 # Регистрация товаров в router
 router.register(r'products', ProductViewSet)
 # Регистрация контактов
-router.register(r'contacts', ContactViewSet)
+router.register(r'contacts', ContactViewSet, basename="contact")
 
 urlpatterns = [
     # Обновление прайса поставщика

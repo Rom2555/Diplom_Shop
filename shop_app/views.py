@@ -131,6 +131,8 @@ class ContactViewSet(viewsets.ModelViewSet):
     # http методы только GET/POST/DELETE (кроме PUT/PATCH)
     http_method_names = ['get', 'post', 'delete']
 
+    queryset = Contact.objects.none()
+
     def get_queryset(self):
         # Фильтр. Пользователь видит только свои контакты
         return Contact.objects.filter(user=self.request.user)
