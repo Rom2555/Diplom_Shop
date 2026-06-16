@@ -104,9 +104,7 @@ class BasketSerializer(serializers.ModelSerializer):
 
 class AddToBasketSerializer(serializers.Serializer):
     """
-    Сериализатор для валидации данных при добавлении товара в корзину.
-    Мы не наследуемся от ModelSerializer, потому что ID приходят из JSON,
-    а объекты нужно будет искать вручную с проверкой остатков.
+    Сериализатор для валидации данных при добавлении товара в корзину
     """
     product_id = serializers.IntegerField(write_only=True, help_text='ID товара')
     shop_id = serializers.IntegerField(write_only=True, help_text='ID магазина (поставщика)')
