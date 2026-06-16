@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from shop_app.models import ProductParameter, Product
+from shop_app.models import ProductParameter, Product, Contact
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -60,3 +60,14 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'model', 'category',
             'price', 'price_rrc', 'quantity', 'product_parameters'
         )
+
+
+class ContactSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для адресов доставки
+    """
+
+    class Meta:
+        model = Contact
+        fields = ('id', 'city', 'street', 'house', 'structure', 'building', 'apartment', 'phone')
+        read_only_fields = ('id',)
