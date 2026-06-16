@@ -21,4 +21,17 @@ jobs:
             git fetch origin
             git reset --hard origin/main
             docker-compose down
-            docker-compose up -d --build --abort-on-container-exit
+            docker-compose up -d --build
+
+            echo "Ожидание 10 секунд пока поднимутся все контейнеры..."
+            sleep 10
+
+            echo "Проверка статуса контейнеров..."
+
+            if docker-compose ps | grep -q "Exit"; then
+              echo "ОШИБКА: Контейнер упал при запуске! Логи:"
+              docker-compose logs web
+              exit 1
+            fi
+
+            echo "Деплой ОК!"
