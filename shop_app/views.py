@@ -2,13 +2,13 @@ import yaml
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from shop_app.models import Product
-from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer
+from shop_app.models import Product, Contact
+from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer, ContactSerializer
 from shop_app.services import import_shop_data_from_yaml
 from .serializers import ProductSerializer
 
@@ -114,3 +114,27 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Product.objects.all().select_related('category').prefetch_related('product_parameters')
     serializer_class = ProductSerializer
+
+
+@extend_schema(
+    tags=['Contacts'],
+)
+class ContactViewSet(viewsets.ModelViewSet):
+    """
+    Управление контактами (адресами доставки) пользователя.
+    Доступно только авторизованным пользователям
+    """
+
+    permission_classes = [IsAuthenticated] # Допускает только пользователей с токеном
+    serializer_class = ContactSerializer
+
+    # http методы только GET/POST/DELETE (кроме PUT/PATCH)
+    http_method_names = ['get', 'post', 'delete']
+
+    def get_queryset(self):
+        # Фильтр. Пользователь видит только свои контакты
+        return Contact.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # Автопривязка контактов к пользователю
+        serializer.save(user=self.request.user)

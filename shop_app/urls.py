@@ -2,12 +2,14 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import PartnerUpdate, RegisterAccount, ProductViewSet
+from .views import PartnerUpdate, RegisterAccount, ProductViewSet, ContactViewSet
 
 # Роутер для ViewSet
 router = DefaultRouter()
 # Регистрация товаров в router
 router.register(r'products', ProductViewSet)
+# Регистрация контактов
+router.register(r'contacts', ContactViewSet)
 
 urlpatterns = [
     # Обновление прайса поставщика
