@@ -7,8 +7,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from shop_app.models import Product, Contact, Order
-from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer, ContactSerializer, BasketSerializer
+from shop_app.models import Product, Contact, Order, OrderItem
+from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer, ContactSerializer, BasketSerializer, \
+    AddToBasketSerializer
 from shop_app.services import import_shop_data_from_yaml
 from .serializers import ProductSerializer
 
@@ -144,11 +145,17 @@ class ContactViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
+@extend_schema(
+    tags=['Basket'],
+    # Описываем POST запрос для Swagger
+    request=AddToBasketSerializer,
+    responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
+)
 class BasketAPIView(APIView):
     """
     Класс для работы с корзиной пользователя
     """
-    permission_classes = [IsAuthenticated] # Допускает только пользователей с токеном
+    permission_classes = [IsAuthenticated]  # Допускает только пользователей с токеном
 
     def get(self, request, *args, **kwargs):
         # Поиск статуса 'basket' у пользователя
@@ -163,3 +170,61 @@ class BasketAPIView(APIView):
 
         serializer = BasketSerializer(basket)
         return Response({'Status': True, 'Basket': serializer.data})
+
+    def post(self, request, *args, **kwargs):
+        # Валидация входящих данных
+        serializer = AddToBasketSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'Status': False, 'Errors': serializer.errors}, status=400)
+
+        product_id = serializer.validated_data['product_id']
+        shop_id = serializer.validated_data['shop_id']
+        quantity = serializer.validated_data['quantity']
+
+        try:
+            # Поиск товара и проверка остатка
+            product = Product.objects.select_related('category__shop').get(id=product_id)
+
+            # Проверка что продукт относится к этому же магазину
+            if product.category.shop_id != shop_id:
+                return Response({'Status': False, 'Errors': 'Этот товар не принадлежит данному магазину'},
+                                status=400)
+
+            # Поиск или создание корзины (статус заказа - basket)
+            basket, _ = Order.objects.get_or_create(user=request.user, state='basket')
+
+            # Проверка наличия такого же товара от этого магазина в корзине
+            item = OrderItem.objects.filter(
+                order=basket,
+                product=product,
+                shop_id=shop_id
+            ).first()
+
+            if item:
+                # Товар уже в корзине
+                new_quantity = item.quantity + quantity
+                if new_quantity > product.quantity:
+                    return Response(
+                        {'Status': False, 'Errors': f'Превышено количество на складе. Доступно: {product.quantity}'},
+                        status=400)
+                item.quantity = new_quantity
+                item.save()
+            else:
+                # Товара нет в корзине
+                if quantity > product.quantity:
+                    return Response(
+                        {'Status': False, 'Errors': f'Превышено количество на складе. Доступно: {product.quantity}'},
+                        status=400)
+                # Создание новой позиции
+                OrderItem.objects.create(
+                    order=basket,
+                    product=product,
+                    shop_id=shop_id,
+                    quantity=quantity,
+                    price=product.price  # Сохранение текущей цены товара
+                )
+
+            return Response({'Status': True}, status=200)
+
+        except Product.DoesNotExist:
+            return Response({'Status': False, 'Errors': 'Товар не найден'}, status=404)

@@ -99,3 +99,15 @@ class BasketSerializer(serializers.ModelSerializer):
     def get_total_sum(self, obj):
         # Сумма корзины
         return sum(item.quantity * item.price for item in obj.ordered_items.all())
+
+
+
+class AddToBasketSerializer(serializers.Serializer):
+    """
+    Сериализатор для валидации данных при добавлении товара в корзину.
+    Мы не наследуемся от ModelSerializer, потому что ID приходят из JSON,
+    а объекты нужно будет искать вручную с проверкой остатков.
+    """
+    product_id = serializers.IntegerField(write_only=True, help_text='ID товара')
+    shop_id = serializers.IntegerField(write_only=True, help_text='ID магазина (поставщика)')
+    quantity = serializers.IntegerField(write_only=True, default=1, help_text='Количество (по умолчанию 1)')
