@@ -1,4 +1,6 @@
 import yaml
+from django.db import transaction
+from django.db.models import F
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework import viewsets
@@ -9,7 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from shop_app.models import Product, Contact, Order, OrderItem
 from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer, ContactSerializer, BasketSerializer, \
-    AddToBasketSerializer
+    AddToBasketSerializer, ConfirmOrderSerializer
 from shop_app.services import import_shop_data_from_yaml
 from .serializers import ProductSerializer
 
@@ -260,3 +262,62 @@ class BasketDeleteView(APIView):
             return Response({'Status': True})
         except OrderItem.DoesNotExist:
             return Response({'Status': False, 'Errors': 'Позиция не найдена в корзине'}, status=404)
+
+
+class OrderConfirmView(APIView):
+    """
+    Подтверждение заказа (перевод корзины в статус 'new').
+    Списание со склада и привязка контакта
+    """
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=['Orders'],
+        request=ConfirmOrderSerializer,
+        responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
+    )
+    @transaction.atomic    # Атоматический откат транзакции при падении любой операции внутри post
+    def post(self, request, *args, **kwargs):
+        # Получение корзины пользователя
+        basket = Order.objects.filter(user=request.user, state='basket').select_related('contact').first()
+        if not basket:
+            return Response({'Status': False, 'Errors': 'Корзина пуста'}, status=400)
+
+        # Валидация ID контакта
+        serializer = ConfirmOrderSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'Status': False, 'Errors': serializer.errors}, status=400)
+
+        contact_id = serializer.validated_data['contact_id']
+
+        try:
+            # Проверка - контакт принадлежит пользователю
+            contact = Contact.objects.get(id=contact_id, user=request.user)
+        except Contact.DoesNotExist:
+            return Response({'Status': False, 'Errors': 'Контакт не найден'}, status=404)
+
+        # Проверка остатков всех товаров до списания
+        for item in basket.ordered_items.all():
+            if item.product.quantity < item.quantity:
+                return Response(
+                    {'Status': False, 'Errors': f'Товар {item.product.name} закончился на складе'},
+                    status=400
+                )
+
+        # Атомарное списание ВСЕХ товаров
+        for item in basket.ordered_items.all():
+            updated = Product.objects.filter(id=item.product_id).update(
+                quantity=F('quantity') - item.quantity
+            )
+            if updated == 0: # Ни одна строка не обновлена
+                return Response(
+                    {'Status': False, 'Errors': f'Товар {item.product.name} закончился на складе'},
+                    status=400
+                )
+
+        # Изменение статуса заказа и привязка контакта
+        basket.state = 'new'
+        basket.contact = contact
+        basket.save()
+
+        return Response({'Status': True, 'Order_ID': basket.id})

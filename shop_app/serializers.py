@@ -108,3 +108,10 @@ class AddToBasketSerializer(serializers.Serializer):
     product_id = serializers.IntegerField(write_only=True, help_text='ID товара')
     shop_id = serializers.IntegerField(write_only=True, help_text='ID магазина (поставщика)')
     quantity = serializers.IntegerField(write_only=True, default=1, help_text='Количество (по умолчанию 1)')
+
+
+class ConfirmOrderSerializer(serializers.Serializer):
+    """
+    Сериализатор для подтверждения заказа из корзины
+    """
+    contact_id = serializers.IntegerField(write_only=True, help_text='ID адреса доставки')
