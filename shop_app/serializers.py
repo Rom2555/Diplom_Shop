@@ -115,3 +115,41 @@ class ConfirmOrderSerializer(serializers.Serializer):
     Сериализатор для подтверждения заказа из корзины
     """
     contact_id = serializers.IntegerField(write_only=True, help_text='ID адреса доставки')
+
+
+class OrderItemForOrderSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для позиций внутри истории заказов
+    """
+    product_name = serializers.CharField(source='product.name', read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ('id', 'product', 'product_name', 'shop', 'quantity', 'price')
+
+
+class ContactForOrderSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для вывода контакта в заказе
+    """
+
+    class Meta:
+        model = Contact
+        fields = ('id', 'city', 'street', 'house', 'structure', 'building', 'apartment', 'phone')
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для вывода истории заказов и деталей заказа
+    """
+    ordered_items = OrderItemForOrderSerializer(many=True, read_only=True)
+    contact = ContactForOrderSerializer(read_only=True)
+    total_sum = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = ('id', 'dt', 'state', 'contact', 'ordered_items', 'total_sum')
+        read_only_fields = fields
+
+    def get_total_sum(self, obj):
+        return sum(item.quantity * item.price for item in obj.ordered_items.all())

@@ -11,13 +11,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from shop_app.models import Product, Contact, Order, OrderItem
 from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer, ContactSerializer, BasketSerializer, \
-    AddToBasketSerializer, ConfirmOrderSerializer
+    AddToBasketSerializer, ConfirmOrderSerializer, OrderSerializer
 from shop_app.services import import_shop_data_from_yaml
 from .serializers import ProductSerializer
 
 
 @extend_schema(
-    auth=[],
     tags=['Partner'],
     request={
         'multipart/form-data': {
@@ -75,7 +74,6 @@ class PartnerUpdate(APIView):
 
 @extend_schema(
     tags=['User'],
-    auth=[],
     request=RegisterSerializer,
     responses={201: {'type': 'object', 'properties': {
         'Status': {'type': 'boolean'},
@@ -111,7 +109,6 @@ class RegisterAccount(APIView):
 
 @extend_schema(
     tags=['Products'],
-    auth=[],
 )
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -276,7 +273,7 @@ class OrderConfirmView(APIView):
         request=ConfirmOrderSerializer,
         responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
     )
-    @transaction.atomic    # Атоматический откат транзакции при падении любой операции внутри post
+    @transaction.atomic  # Атоматический откат транзакции при падении любой операции внутри post
     def post(self, request, *args, **kwargs):
         # Получение корзины пользователя
         basket = Order.objects.filter(user=request.user, state='basket').select_related('contact').first()
@@ -304,12 +301,12 @@ class OrderConfirmView(APIView):
                     status=400
                 )
 
-        # Атомарное списание ВСЕХ товаров
+        # Атомарное списание товаров в БД
         for item in basket.ordered_items.all():
             updated = Product.objects.filter(id=item.product_id).update(
                 quantity=F('quantity') - item.quantity
             )
-            if updated == 0: # Ни одна строка не обновлена
+            if updated == 0:  # Ни одна строка не обновлена
                 return Response(
                     {'Status': False, 'Errors': f'Товар {item.product.name} закончился на складе'},
                     status=400
@@ -321,3 +318,18 @@ class OrderConfirmView(APIView):
         basket.save()
 
         return Response({'Status': True, 'Order_ID': basket.id})
+
+
+class OrderViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Просмотр истории заказов и деталей конкретного заказа
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderSerializer
+
+    queryset = Order.objects.none()
+
+    def get_queryset(self):
+        # Заказы пользователя с исключением корзины
+        return Order.objects.filter(user=self.request.user).exclude(state='basket').prefetch_related(
+            'ordered_items__product', 'contact')
