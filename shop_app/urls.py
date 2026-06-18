@@ -2,8 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from shop_app.views import PartnerUpdate, RegisterAccount, ProductViewSet, ContactViewSet, BasketAPIView, \
-    BasketDeleteView, OrderConfirmView, OrderViewSet
+from shop_app.views import PartnerUpdate, RegisterAccount, ProductViewSet, ContactViewSet, BasketAPIView, BasketDeleteView, OrderConfirmView, OrderViewSet, RegisterConfirmView
 
 # Роутер для ViewSet
 router = DefaultRouter()
@@ -19,8 +18,9 @@ urlpatterns = [
     # Обновление прайса поставщика
     path('partner/update', PartnerUpdate.as_view(), name='partner-update'),
 
-    # Регистрация пользователя
-    path('user/register', RegisterAccount.as_view(), name='user-register'),
+    # Регистрация и подтверждение пользователя
+    path('user/register/', RegisterAccount.as_view(), name='user-register'),
+    path('user/register/confirm/', RegisterConfirmView.as_view(), name='register-confirm'),
 
     # JWT (вход и обновление токена)
     path('user/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

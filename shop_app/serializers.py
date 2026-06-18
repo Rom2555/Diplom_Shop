@@ -96,7 +96,7 @@ class BasketSerializer(serializers.ModelSerializer):
         model = Order
         fields = ('id', 'ordered_items', 'total_sum', 'state', 'dt')
 
-    def get_total_sum(self, obj):
+    def get_total_sum(self, obj) -> int:
         # Сумма корзины
         return sum(item.quantity * item.price for item in obj.ordered_items.all())
 
@@ -151,5 +151,5 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ('id', 'dt', 'state', 'contact', 'ordered_items', 'total_sum')
         read_only_fields = fields
 
-    def get_total_sum(self, obj):
+    def get_total_sum(self, obj) -> int:
         return sum(item.quantity * item.price for item in obj.ordered_items.all())

@@ -1,6 +1,7 @@
 import yaml
 from django.db import transaction
 from django.db.models import F
+from django.urls import reverse
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework import viewsets
@@ -9,6 +10,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from diplom_shop import settings
+from shop_app.models import ConfirmEmailToken
 from shop_app.models import Product, Contact, Order, OrderItem
 from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer, ContactSerializer, BasketSerializer, \
     AddToBasketSerializer, ConfirmOrderSerializer, OrderSerializer
@@ -72,6 +75,31 @@ class PartnerUpdate(APIView):
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 
+class RegisterConfirmView(APIView):
+    """
+    Подтверждение email и активация аккаунта
+    """
+    serializer_class = RegisterSerializer
+
+    def get(self, request, *args, **kwargs):
+        token = request.query_params.get('token')
+        if not token:
+            return Response({'Status': False, 'Error': 'Нет токена'}, status=400)
+
+        try:
+            token_obj = ConfirmEmailToken.objects.get(key=token)
+            if token_obj.user.is_active:
+                return Response({'Status': False, 'Error': 'Аккаунт уже подтвержден'}, status=400)
+
+            token_obj.user.is_active = True
+            token_obj.user.save()
+            token_obj.delete()  # Удаление токена после использования
+
+            return Response({'Status': True})
+        except ConfirmEmailToken.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Неверный токен'}, status=400)
+
+
 @extend_schema(
     tags=['User'],
     request=RegisterSerializer,
@@ -84,6 +112,7 @@ class PartnerUpdate(APIView):
 class RegisterAccount(APIView):
     """
     Регистрация нового пользователя с выдачей JWT токенов
+    и отправкой письма подтверждения
     """
     permission_classes = [AllowAny]  # Права доступа для всех
 
@@ -93,6 +122,19 @@ class RegisterAccount(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         user = serializer.save()
+
+        # Подтверждение регистрации Яндекс
+        token, _ = ConfirmEmailToken.objects.get_or_create(user_id=user.id)
+        confirm_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/v1/user/register/confirm/?token={token.key}"
+
+        try:
+            user.email_user(
+                f"Подтверждение регистрации {user.username}",
+                f"Для завершения регистрации перейдите по ссылке:\n\n{confirm_url}",
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"ОШИБКА ОТПРАВКИ EMAIL: {e}")
 
         # Генерация JWT токенов
         refresh = RefreshToken.for_user(user)
@@ -151,6 +193,7 @@ class BasketAPIView(APIView):
     """
     Класс для работы с корзиной пользователя
     """
+    serializer_class = BasketSerializer
     permission_classes = [IsAuthenticated]  # Допускает только пользователей с токеном
 
     def get(self, request, *args, **kwargs):

@@ -143,6 +143,19 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# Настройки почты (Яндекс)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465))
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
+
+# Настройки URL для email ссылок
+SITE_PROTOCOL = os.getenv('SITE_PROTOCOL', 'http')
+SITE_DOMAIN = os.getenv('SITE_DOMAIN', '127.0.0.1:8000')
+
 # Настройки DRF и JWT
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

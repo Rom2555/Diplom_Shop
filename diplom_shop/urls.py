@@ -21,7 +21,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('api/v1/', include('shop_app.urls')),
+    path('api/v1/', include(('shop_app.urls', 'shop_app'), namespace='shop_app')),
 
     # Подключение Swagger
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
