@@ -14,7 +14,7 @@ from diplom_shop import settings
 from shop_app.models import ConfirmEmailToken
 from shop_app.models import Product, Contact, Order, OrderItem
 from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer, ContactSerializer, BasketSerializer, \
-    AddToBasketSerializer, ConfirmOrderSerializer, OrderSerializer
+    AddToBasketSerializer, ConfirmOrderSerializer, OrderSerializer, TokenConfirmSerializer
 from shop_app.services import import_shop_data_from_yaml
 from .serializers import ProductSerializer
 
@@ -75,11 +75,24 @@ class PartnerUpdate(APIView):
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    tags=['User'],
+    request=TokenConfirmSerializer,  # Теперь Swagger покажет поле "token"
+    responses={200: {'type': 'object', 'properties': {
+        'Status': {'type': 'boolean'},
+        'Message': {'type': 'string'}
+    }}}
+)
 class RegisterConfirmView(APIView):
     """
     Подтверждение email и активация аккаунта
     """
-    serializer_class = RegisterSerializer
+
+    def get(self, request, *args, **kwargs):
+        return Response(
+            {"detail": "Пожалуйста, отправьте POST запрос с токеном через Swagger (API Docs)"},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
 
     def post(self, request, *args, **kwargs):
         token = request.data.get('token')

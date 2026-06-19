@@ -155,3 +155,10 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_total_sum(self, obj) -> int:
         return sum(item.quantity * item.price for item in obj.ordered_items.all())
+
+
+class TokenConfirmSerializer(serializers.Serializer):
+    """
+    Сериализатор для приема токена из письма
+    """
+    token = serializers.CharField(help_text='Токен подтверждения из письма')
