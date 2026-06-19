@@ -154,7 +154,7 @@ class RegisterAccount(APIView):
         return Response(
             {
                 'Status': True,
-                'massages': u'На ваш email отправлено письмо для подтверждения регистрации'
+                'messages': u'На ваш email отправлено письмо для подтверждения регистрации'
             },
             status=status.HTTP_201_CREATED
         )
