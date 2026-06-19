@@ -3,14 +3,12 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.db import transaction
 from django.db.models import F
-from django.urls import reverse
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from diplom_shop import settings
 from shop_app.models import ConfirmEmailToken
@@ -417,3 +415,46 @@ class ResetPasswordView(APIView):
             pass  # Безопасность. Не сообщать что пользователь не найдет
 
         return Response({'Status': True})
+
+
+@extend_schema(
+    tags=['User'],
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'user_id': {'type': 'integer', 'description': 'ID пользователя из письма'},
+                'token': {'type': 'string', 'description': 'Токен из письма'},
+                'new_password': {'type': 'string', 'description': 'Новый пароль'}
+            },
+            'required': ['user_id', 'token', 'new_password']
+        }
+    },
+    responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
+)
+class ResetPasswordConfirmView(APIView):
+    """
+    Установка нового пароля после получения токена
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        user_id = request.data.get('user_id')
+        token = request.data.get('token')
+        new_password = request.data.get('new_password')
+
+        if not all([user_id, token, new_password]):
+            return Response({'Status': False, 'Error': 'Заполните все поля: user_id, token, new_password'}, status=400)
+
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Пользователь не найден'}, status=400)
+
+        # Проверка валидности токена
+        if default_token_generator.check_token(user, token):
+            user.set_password(new_password)
+            user.save()
+            return Response({'Status': True, 'Message': 'Пароль успешно изменен'})
+        else:
+            return Response({'Status': False, 'Error': 'Неверный токен'}, status=400)
