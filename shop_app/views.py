@@ -91,11 +91,12 @@ class RegisterConfirmView(APIView):
             if token_obj.user.is_active:
                 return Response({'Status': False, 'Error': 'Аккаунт уже подтвержден'}, status=400)
 
-            token_obj.user.is_active = True # Активация пользователя
+            token_obj.user.is_active = True  # Активация пользователя
             token_obj.user.save()
             token_obj.delete()  # Удаление токена после использования
 
-            return Response({'Status': True, 'Message': 'Успешная регистрация! Вы можете войти под своим логином/паролем'})
+            return Response(
+                {'Status': True, 'Message': 'Успешная регистрация! Вы можете войти под своим логином/паролем'})
         except ConfirmEmailToken.DoesNotExist:
             return Response({'Status': False, 'Error': 'Неверный токен'}, status=400)
 
@@ -267,11 +268,6 @@ class BasketAPIView(APIView):
 
         except Product.DoesNotExist:
             return Response({'Status': False, 'Errors': 'Товар не найден'}, status=404)
-
-
-
-        except OrderItem.DoesNotExist:
-            return Response({'Status': False, 'Errors': 'Позиция не найдена в корзине'}, status=404)
 
 
 class BasketDeleteView(APIView):
