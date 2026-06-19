@@ -79,10 +79,9 @@ class RegisterConfirmView(APIView):
     """
     Подтверждение email и активация аккаунта
     """
-    serializer_class = RegisterSerializer
 
-    def get(self, request, *args, **kwargs):
-        token = request.query_params.get('token')
+    def post(self, request, *args, **kwargs):
+        token = request.data.get('token')
         if not token:
             return Response({'Status': False, 'Error': 'Нет токена'}, status=400)
 
@@ -124,13 +123,15 @@ class RegisterAccount(APIView):
 
         # Подтверждение регистрации Яндекс
         token, _ = ConfirmEmailToken.objects.get_or_create(user_id=user.id)
-        confirm_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/v1/user/register/confirm/?token={token.key}"
+        confirm_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/v1/user/register/confirm/"
 
         try:
-            # Текст email
+            # Текст письма
             user.email_user(
                 f"Подтверждение регистрации {user.username}",
                 f"Для завершения регистрации перейдите по ссылке:\n\n{confirm_url}",
+                f'Вставьте следующий токен:\n'
+                f'"token": "{token.key}"',
                 fail_silently=False,
             )
         except Exception as e:
