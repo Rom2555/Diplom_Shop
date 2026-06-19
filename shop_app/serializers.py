@@ -9,6 +9,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     Сериализатор для регистрации нового пользователя
     """
     password = serializers.CharField(write_only=True)
+    username = serializers.CharField(help_text='Имя пользователя')
 
     class Meta:
         model = User
