@@ -105,8 +105,6 @@ class RegisterConfirmView(APIView):
     request=RegisterSerializer,
     responses={201: {'type': 'object', 'properties': {
         'Status': {'type': 'boolean'},
-        'refresh': {'type': 'string'},
-        'access': {'type': 'string'}
     }}}
 )
 class RegisterAccount(APIView):
