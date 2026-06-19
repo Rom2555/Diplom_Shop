@@ -79,6 +79,7 @@ class RegisterConfirmView(APIView):
     """
     Подтверждение email и активация аккаунта
     """
+    serializer_class = RegisterSerializer
 
     def post(self, request, *args, **kwargs):
         token = request.data.get('token')
@@ -128,10 +129,10 @@ class RegisterAccount(APIView):
         try:
             # Текст письма
             user.email_user(
-                f"Подтверждение регистрации {user.username}",
-                f"Для завершения регистрации перейдите по ссылке:\n\n{confirm_url}",
-                f'Вставьте следующий токен:\n'
-                f'"token": "{token.key}"',
+                subject=f"Подтверждение регистрации {user.username}",
+                message=f'Для подтверждения аккаунта используйте API эндпоинт: {confirm_url}\n\n'
+                        f'Вставьте следующий токен в Swagger:\n'
+                        f'"token": "{token.key}"',
                 fail_silently=False,
             )
         except Exception as e:
