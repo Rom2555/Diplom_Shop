@@ -1,4 +1,6 @@
 import yaml
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
 from django.db import transaction
 from django.db.models import F
 from django.urls import reverse
@@ -127,6 +129,7 @@ class RegisterAccount(APIView):
         confirm_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/v1/user/register/confirm/?token={token.key}"
 
         try:
+            # Текст email
             user.email_user(
                 f"Подтверждение регистрации {user.username}",
                 f"Для завершения регистрации перейдите по ссылке:\n\n{confirm_url}",
@@ -366,3 +369,51 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
         # Заказы пользователя с исключением корзины
         return Order.objects.filter(user=self.request.user).exclude(state='basket').prefetch_related(
             'ordered_items__product', 'contact')
+
+
+@extend_schema(
+    tags=['User'],
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'email': {'type': 'string', 'format': 'email', 'description': 'Email пользователя'}
+            },
+            'required': ['email']
+        }
+    },
+    responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
+)
+class ResetPasswordView(APIView):
+    """
+    Запрос на сброс пароля. Отправляет ссылку с токеном на email
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        if not email:
+            return Response({'Status': False, 'Error': 'Укажите email'}, status=400)
+
+        try:
+            user = User.objects.get(email=email)
+            # Токен
+            token = default_token_generator.make_token(user)
+
+            # Ссылка для сброса пароля
+            reset_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/v1/user/password/reset/confirm/"
+
+            # Текст email
+            user.email_user(
+                'Сброс пароля',
+                f'Для сброса пароля пройдите по ссылке: {reset_url}\n\n'
+                f'Вставьте следующие данные:\n'
+                f'"user_id": {user.pk}\n'
+                f'"token": "{token}"\n'
+                f'"new_password": "Ваш_Новый_Пароль"',
+                fail_silently=False
+            )
+        except User.DoesNotExist:
+            pass  # Безопасность. Не сообщать что пользователь не найдет
+
+        return Response({'Status': True})

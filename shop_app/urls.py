@@ -2,7 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from shop_app.views import PartnerUpdate, RegisterAccount, ProductViewSet, ContactViewSet, BasketAPIView, BasketDeleteView, OrderConfirmView, OrderViewSet, RegisterConfirmView
+from shop_app.views import PartnerUpdate, RegisterAccount, ProductViewSet, ContactViewSet, BasketAPIView, \
+    BasketDeleteView, OrderConfirmView, OrderViewSet, RegisterConfirmView, ResetPasswordView
 
 # Роутер для ViewSet
 router = DefaultRouter()
@@ -32,6 +33,9 @@ urlpatterns = [
 
     # Подтверждение заказа
     path('order/confirm/', OrderConfirmView.as_view(), name='order-confirm'),
+
+    # Восстановление пароля
+    path('user/password/reset/', ResetPasswordView.as_view(), name ='password-reset'),
 
     # Подключение роутера с ViewSet
     path('', include(router.urls)),
