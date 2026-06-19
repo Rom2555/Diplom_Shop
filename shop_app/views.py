@@ -91,11 +91,11 @@ class RegisterConfirmView(APIView):
             if token_obj.user.is_active:
                 return Response({'Status': False, 'Error': 'Аккаунт уже подтвержден'}, status=400)
 
-            token_obj.user.is_active = True
+            token_obj.user.is_active = True # Активация пользователя
             token_obj.user.save()
             token_obj.delete()  # Удаление токена после использования
 
-            return Response({'Status': True})
+            return Response({'Status': True, 'Message': 'Успешная регистрация! Вы можете войти под своим логином/паролем'})
         except ConfirmEmailToken.DoesNotExist:
             return Response({'Status': False, 'Error': 'Неверный токен'}, status=400)
 
@@ -136,14 +136,10 @@ class RegisterAccount(APIView):
         except Exception as e:
             print(f"ОШИБКА ОТПРАВКИ EMAIL: {e}")
 
-        # Генерация JWT токенов
-        refresh = RefreshToken.for_user(user)
-
         return Response(
             {
                 'Status': True,
-                'refresh': str(refresh),
-                'access': str(refresh.access_token)
+                'massages': u'На ваш email отправлено письмо для подтверждения регистрации'
             },
             status=status.HTTP_201_CREATED
         )
