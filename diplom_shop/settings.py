@@ -179,11 +179,16 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'SECURITY': [{'bearerAuth': []}],
-    'COMPONENT_SECURITY_SCHEMES': {
+    'SECURITY_SCHEMES': {
         'bearerAuth': {
             'type': 'http',
             'scheme': 'bearer',
             'bearerFormat': 'JWT',
         }
+    },
+    'SWAGGER_UI_SETTINGS': {
+    'fetchSchemaWithQuery': False,  # откл загрузка схемы с запросом
+    'tryItOutEnabled': False,       # откл кнопка "Try it out"
+    'docExpansion': 'none',         # свернуть эндпоинты
     }
 }
