@@ -187,8 +187,8 @@ SPECTACULAR_SETTINGS = {
         }
     },
     'SWAGGER_UI_SETTINGS': {
-    'fetchSchemaWithQuery': False,  # откл загрузка схемы с запросом
-    'tryItOutEnabled': False,       # откл кнопка "Try it out"
-    'docExpansion': 'none',         # свернуть эндпоинты
+        'fetchSchemaWithQuery': False,  # откл загрузка схемы с запросом
+        'tryItOutEnabled': False,  # откл кнопка "Try it out"
+        'docExpansion': '',  # свернуть эндпоинты
     }
 }
