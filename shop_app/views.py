@@ -1,6 +1,8 @@
 import yaml
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import F
 from drf_spectacular.utils import extend_schema
@@ -404,6 +406,50 @@ class OrderConfirmView(APIView):
         basket.state = 'new'
         basket.contact = contact
         basket.save()
+
+        # ******* ОТПРАВКА ПИСЕМ **********
+
+        User = get_user_model()
+
+        # Письмо клиенту (подтверждение)
+        try:
+            send_mail(
+                subject=f'Заказ №{basket.id} оформлен',
+                message=f'Здравствуйте! Ваш заказ принят в обработку.',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[request.user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"ОШИБКА ОТПРАВКИ EMAIL КЛИЕНТУ: {e}")
+
+        # Письмо администратору (накладная)
+        admin_emails = list(User.objects.filter(is_superuser=True, is_active=True).values_list('email', flat=True))
+        if admin_emails:
+            # Текст накладной из позиций заказа
+            items_text = "\n".join(
+                [f"- {item.product.name} | Количество: {item.quantity} | Цена: {item.price}"
+                 for item in basket.ordered_items.all()]
+            )
+
+            invoice_text = (
+                f"Новый заказ №{basket.id}\n"
+                f"Покупатель: {request.user.username} (ID: {request.user.id})\n"
+                f"Адрес доставки: {contact.city}, ул. {contact.street}, д. {contact.house}\n\n"
+                f"Состав заказа:\n{items_text}"
+            )
+
+            try:
+                send_mail(
+                    subject=f'Новая накладная: Заказ №{basket.id}',
+                    message=invoice_text,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=admin_emails,
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print(f"ОШИБКА ОТПРАВКИ EMAIL АДМИНИСТРАТОРУ: {e}")
+        # ****************************
 
         return Response({'Status': True, 'Order_ID': basket.id})
 
