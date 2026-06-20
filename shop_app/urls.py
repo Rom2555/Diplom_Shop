@@ -2,9 +2,9 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from shop_app.views import PartnerUpdate, RegisterAccount, ProductViewSet, ContactViewSet, BasketAPIView, \
-    BasketDeleteView, OrderConfirmView, OrderViewSet, RegisterConfirmView, ResetPasswordView, ResetPasswordConfirmView, \
-    PartnerStateView, PartnerOrdersView, OrderStatusView
+from shop_app.views import PartnerUpdate, ProductViewSet, ContactViewSet, BasketAPIView, \
+    BasketDeleteView, OrderConfirmView, OrderViewSet, PartnerStateView, PartnerOrdersView, OrderStatusView
+from shop_app.views_user import RegisterAccount, RegisterConfirmView, ResetPasswordView, ResetPasswordConfirmView
 
 # Роутер для ViewSet
 router = DefaultRouter()
