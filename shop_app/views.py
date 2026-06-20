@@ -274,6 +274,12 @@ class BasketAPIView(APIView):
             # Поиск товара и проверка остатка
             product = Product.objects.select_related('category__shop').get(id=product_id)
 
+            # Проверка доступности магазина для заказов
+            if not product.category.shop.state:
+                return Response(
+                    {'status':False,'errors':'Магазин временно не принимает заказы'},
+                )
+
             # Проверка что продукт относится к этому же магазину
             if product.category.shop_id != shop_id:
                 return Response({'Status': False, 'Errors': 'Этот товар не принадлежит данному магазину'},
