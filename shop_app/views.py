@@ -595,3 +595,45 @@ class PartnerOrdersView(APIView):
 
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
+
+
+@extend_schema(
+    tags=['Orders'],
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'order_id': {'type': 'integer', 'description': 'ID заказа'},
+                'state': {'type': 'string',
+                          'description': 'Новый статус (new, confirmed, assembled, sent, delivered, canceled)'}
+            },
+            'required': ['order_id', 'state']
+        }
+    },
+    responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
+)
+class OrderStatusView(APIView):
+    """
+    Редактирование статуса заказа
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        order_id = request.data.get('order_id')
+        new_state = request.data.get('state')
+
+        if not order_id or not new_state:
+            return Response({'Status': False, 'Errors': 'Укажите order_id и state'}, status=400)
+
+        # Проверка статуса в базе из списка допустимых
+        valid_states = [choice[0] for choice in Order.STATUS_CHOICES]
+        if new_state not in valid_states:
+            return Response({'Status': False, 'Errors': f'Неверный статус. Допустимые: {valid_states}'}, status=400)
+
+        try:
+            order = Order.objects.get(id=order_id)
+            order.state = new_state
+            order.save()
+            return Response({'Status': True})
+        except Order.DoesNotExist:
+            return Response({'Status': False, 'Errors': 'Заказ не найден'}, status=404)
