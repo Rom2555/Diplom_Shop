@@ -20,7 +20,7 @@ urlpatterns = [
     # Обновление прайса поставщика
     path('partner/update', PartnerUpdate.as_view(), name='partner-update'),
 
-     # Управление статусом магазина
+     # Управление состоянием магазина
     path('partner/state', PartnerStateView.as_view(), name='partner-state'),
 
     # Регистрация и подтверждение пользователя

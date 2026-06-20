@@ -89,7 +89,7 @@ class PartnerUpdate(APIView):
 )
 class PartnerStateView(APIView):
     """
-    Управление статусом приёма заказов магазином
+    Управление состоянием приёма заказов магазином
     """
     permission_classes = [IsAuthenticated]
 
