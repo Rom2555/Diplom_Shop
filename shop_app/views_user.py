@@ -8,9 +8,17 @@ from rest_framework.views import APIView
 
 from diplom_shop import settings
 from shop_app.models import ConfirmEmailToken
-from shop_app.serializers import RegisterSerializer
+from shop_app.serializers import RegisterSerializer, TokenConfirmSerializer
 
 
+@extend_schema(
+    tags=['User'],
+    request=TokenConfirmSerializer,
+    responses={200: {'type': 'object', 'properties': {
+        'Status': {'type': 'boolean'},
+        'Message': {'type': 'string'}
+    }}}
+)
 class RegisterConfirmView(APIView):
     """
     Подтверждение email и активация аккаунта

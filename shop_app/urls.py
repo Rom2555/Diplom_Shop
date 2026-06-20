@@ -2,8 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from shop_app.views import ProductViewSet, ContactViewSet, BasketAPIView, \
-    BasketDeleteView, OrderConfirmView, OrderViewSet, OrderStatusView
+from shop_app.views import ProductViewSet, ContactViewSet
+from shop_app.views_orders import OrderViewSet, BasketAPIView, BasketDeleteView, OrderConfirmView, OrderStatusView
 from shop_app.views_partner import PartnerUpdate, PartnerStateView, PartnerOrdersView
 from shop_app.views_user import RegisterAccount, RegisterConfirmView, ResetPasswordView, ResetPasswordConfirmView
 
