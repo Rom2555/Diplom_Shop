@@ -426,16 +426,29 @@ class OrderConfirmView(APIView):
         # Письмо администратору (накладная)
         admin_emails = list(User.objects.filter(is_superuser=True, is_active=True).values_list('email', flat=True))
         if admin_emails:
-            # Текст накладной из позиций заказа
+            # Таблица с товарами
             items_text = "\n".join(
                 [f"- {item.product.name} | Количество: {item.quantity} | Цена: {item.price}"
                  for item in basket.ordered_items.all()]
             )
 
+            # Сборка полного адреса доставки
+            address_parts = [
+                contact.city,
+                f"ул. {contact.street}",
+                f"д. {contact.house}"
+            ]
+            if contact.structure: address_parts.append(f"корп. {contact.structure}")
+            if contact.building: address_parts.append(f"стр. {contact.building}")
+            if contact.apartment: address_parts.append(f"кв. {contact.apartment}")
+            full_address = ", ".join(address_parts)
+
+            # Текст накладной
             invoice_text = (
                 f"Новый заказ №{basket.id}\n"
                 f"Покупатель: {request.user.username} (ID: {request.user.id})\n"
-                f"Адрес доставки: {contact.city}, ул. {contact.street}, д. {contact.house}\n\n"
+                f"Телефон: {contact.phone}\n"
+                f"Адрес доставки: {full_address}\n\n"
                 f"Состав заказа:\n{items_text}"
             )
 
