@@ -634,6 +634,19 @@ class OrderStatusView(APIView):
             order = Order.objects.get(id=order_id)
             order.state = new_state
             order.save()
+
+            # Отправка письма клиенту
+            try:
+                send_mail(
+                    subject=f'Обновление статуса заказа № {order.id}',
+                    message=f'Статус вашего заказа № {order.id} изменен на: "{order.get_state_display()}".',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[order.user.email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print(f"ОШИБКА ОТПРАВКИ СТАТУСА: {e}")
+
             return Response({'Status': True})
         except Order.DoesNotExist:
             return Response({'Status': False, 'Errors': 'Заказ не найден'}, status=404)
