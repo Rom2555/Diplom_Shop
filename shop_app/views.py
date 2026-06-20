@@ -277,7 +277,7 @@ class BasketAPIView(APIView):
             # Проверка доступности магазина для заказов
             if not product.category.shop.state:
                 return Response(
-                    {'status':False,'errors':'Магазин временно не принимает заказы'},
+                    {'status': False, 'errors': 'Магазин временно не принимает заказы'}, status=400
                 )
 
             # Проверка что продукт относится к этому же магазину
