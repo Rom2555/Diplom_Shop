@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from diplom_shop import settings
-from shop_app.models import ConfirmEmailToken
+from shop_app.models import ConfirmEmailToken, Shop
 from shop_app.models import Product, Contact, Order, OrderItem
 from shop_app.serializers import YAMLUploadSerializer, RegisterSerializer, ContactSerializer, BasketSerializer, \
     AddToBasketSerializer, ConfirmOrderSerializer, OrderSerializer, TokenConfirmSerializer
@@ -40,15 +40,13 @@ class PartnerUpdate(APIView):
     """
     Класс для обновления прайса от поставщика (импорт YAML файла).
     """
-    permission_classes = [AllowAny]  # Права доступа для всех
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        # Валидация входящих данных через сериализатор
         serializer = YAMLUploadSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Проверенный файл
         yaml_file = serializer.validated_data['file']
 
         try:
@@ -76,8 +74,44 @@ class PartnerUpdate(APIView):
 
 
 @extend_schema(
+    tags=['Partner'],
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'shop_id': {'type': 'integer', 'description': 'ID магазина'},
+                'state': {'type': 'boolean', 'description': 'Статус приема заказов (True/False)'}
+            },
+            'required': ['shop_id', 'state']
+        }
+    },
+    responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
+)
+class PartnerStateView(APIView):
+    """
+    Управление статусом приёма заказов магазином
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        shop_id = request.data.get('shop_id')
+        state = request.data.get('state')
+
+        if shop_id is None or state is None:
+            return Response({'Status': False, 'Errors': 'Укажите shop_id и state'}, status=400)
+
+        try:
+            shop = Shop.objects.get(id=shop_id)
+            shop.state = state
+            shop.save()
+            return Response({'Status': True})
+        except Shop.DoesNotExist:
+            return Response({'Status': False, 'Errors': 'Магазин не найден'}, status=404)
+
+
+@extend_schema(
     tags=['User'],
-    request=TokenConfirmSerializer,  # Теперь Swagger покажет поле "token"
+    request=TokenConfirmSerializer,
     responses={200: {'type': 'object', 'properties': {
         'Status': {'type': 'boolean'},
         'Message': {'type': 'string'}
@@ -126,7 +160,7 @@ class RegisterAccount(APIView):
     Регистрация нового пользователя с выдачей JWT токенов
     и отправкой письма подтверждения
     """
-    permission_classes = [AllowAny]  # Права доступа для всех
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
@@ -180,10 +214,10 @@ class ContactViewSet(viewsets.ModelViewSet):
     Доступно только авторизованным пользователям
     """
 
-    permission_classes = [IsAuthenticated]  # Допускает только пользователей с токеном
+    permission_classes = [IsAuthenticated]
     serializer_class = ContactSerializer
 
-    # http методы только GET/POST/DELETE (кроме PUT/PATCH)
+    # http методы только GET/POST/DELETE
     http_method_names = ['get', 'post', 'delete']
 
     queryset = Contact.objects.none()
@@ -205,7 +239,7 @@ class BasketAPIView(APIView):
     Класс для работы с корзиной пользователя
     """
     serializer_class = BasketSerializer
-    permission_classes = [IsAuthenticated]  # Допускает только пользователей с токеном
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         # Поиск статуса 'basket' у пользователя
@@ -228,7 +262,6 @@ class BasketAPIView(APIView):
         }
     )
     def post(self, request, *args, **kwargs):
-        # Валидация входящих данных
         serializer = AddToBasketSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({'Status': False, 'Errors': serializer.errors}, status=400)
@@ -277,7 +310,7 @@ class BasketAPIView(APIView):
                     product=product,
                     shop_id=shop_id,
                     quantity=quantity,
-                    price=product.price  # Сохранение текущей цены товара
+                    price=product.price  # Фиксация цены товара
                 )
 
             return Response({'Status': True}, status=200)
@@ -427,7 +460,7 @@ class ResetPasswordView(APIView):
                 fail_silently=False
             )
         except User.DoesNotExist:
-            pass  # Безопасность. Не сообщать что пользователь не найдет
+            pass  # Безопасность. Не сообщать что пользователь не найден
 
         return Response({'Status': True})
 

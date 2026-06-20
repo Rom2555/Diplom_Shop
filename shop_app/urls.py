@@ -3,7 +3,8 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from shop_app.views import PartnerUpdate, RegisterAccount, ProductViewSet, ContactViewSet, BasketAPIView, \
-    BasketDeleteView, OrderConfirmView, OrderViewSet, RegisterConfirmView, ResetPasswordView, ResetPasswordConfirmView
+    BasketDeleteView, OrderConfirmView, OrderViewSet, RegisterConfirmView, ResetPasswordView, ResetPasswordConfirmView, \
+    PartnerStateView
 
 # Роутер для ViewSet
 router = DefaultRouter()
@@ -18,6 +19,9 @@ router.register(r'orders', OrderViewSet, basename="order")
 urlpatterns = [
     # Обновление прайса поставщика
     path('partner/update', PartnerUpdate.as_view(), name='partner-update'),
+
+     # Управление статусом магазина
+    path('partner/state', PartnerStateView.as_view(), name='partner-state'),
 
     # Регистрация и подтверждение пользователя
     path('user/register/', RegisterAccount.as_view(), name='user-register'),
