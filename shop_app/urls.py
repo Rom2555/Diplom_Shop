@@ -4,7 +4,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from shop_app.views import PartnerUpdate, RegisterAccount, ProductViewSet, ContactViewSet, BasketAPIView, \
     BasketDeleteView, OrderConfirmView, OrderViewSet, RegisterConfirmView, ResetPasswordView, ResetPasswordConfirmView, \
-    PartnerStateView
+    PartnerStateView, PartnerOrdersView
 
 # Роутер для ViewSet
 router = DefaultRouter()
@@ -22,6 +22,9 @@ urlpatterns = [
 
      # Управление состоянием магазина
     path('partner/state', PartnerStateView.as_view(), name='partner-state'),
+
+    # Получение заказов поставщиком
+    path('partner/orders/', PartnerOrdersView.as_view(), name='partner-orders'),
 
     # Регистрация и подтверждение пользователя
     path('user/register/', RegisterAccount.as_view(), name='user-register'),

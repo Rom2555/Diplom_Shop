@@ -571,3 +571,27 @@ class ResetPasswordConfirmView(APIView):
             return Response({'Status': True, 'Message': 'Пароль успешно изменен'})
         else:
             return Response({'Status': False, 'Error': 'Неверный токен'}, status=400)
+
+
+@extend_schema(
+    tags=['Partner'],
+    responses={200: OrderSerializer(many=True)}
+)
+class PartnerOrdersView(APIView):
+    """
+    Получение заказов поставщиком
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        shop_id = request.query_params.get('shop_id')
+        if not shop_id:
+            return Response({'Status': False, 'Error': 'Укажите shop_id'}, status=400)
+
+        # Поиск заказов с товарами этого магазина, кроме состояния - корзина
+        orders = Order.objects.filter(
+            ordered_items__shop_id=shop_id
+        ).exclude(state='basket').distinct().prefetch_related('ordered_items__product', 'contact')
+
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
