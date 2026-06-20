@@ -13,6 +13,4 @@ COPY . .
 
 EXPOSE 8000
 
-RUN chmod +x entrypoint.sh
-COPY entrypoint.sh .
-CMD ["./entrypoint.sh"]
+CMD ["sh", "-c", "python manage.py migrate && gunicorn diplom_shop.wsgi:application --bind 0.0.0.0:8000 --workers 3"]
