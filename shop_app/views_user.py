@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from diplom_shop import settings
 from shop_app.models import ConfirmEmailToken
@@ -13,6 +14,7 @@ from shop_app.serializers import RegisterSerializer, TokenConfirmSerializer
 
 @extend_schema(
     tags=['User'],
+    summary='Подтверждение email и активация аккаунта',
     request=TokenConfirmSerializer,
     responses={200: {'type': 'object', 'properties': {
         'Status': {'type': 'boolean'},
@@ -20,9 +22,6 @@ from shop_app.serializers import RegisterSerializer, TokenConfirmSerializer
     }}}
 )
 class RegisterConfirmView(APIView):
-    """
-    Подтверждение email и активация аккаунта
-    """
 
     def get(self, request, *args, **kwargs):
         return Response(
@@ -52,16 +51,13 @@ class RegisterConfirmView(APIView):
 
 @extend_schema(
     tags=['User'],
+    summary='Регистрация нового пользователя с выдачей JWT токенов и отправкой письма подтверждения',
     request=RegisterSerializer,
     responses={201: {'type': 'object', 'properties': {
         'Status': {'type': 'boolean'},
     }}}
 )
 class RegisterAccount(APIView):
-    """
-    Регистрация нового пользователя с выдачей JWT токенов
-    и отправкой письма подтверждения
-    """
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -98,6 +94,7 @@ class RegisterAccount(APIView):
 
 @extend_schema(
     tags=['User'],
+    summary='Запрос на сброс пароля. Отправляет ссылку с токеном на email',
     request={
         'application/json': {
             'type': 'object',
@@ -110,9 +107,6 @@ class RegisterAccount(APIView):
     responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
 )
 class ResetPasswordView(APIView):
-    """
-    Запрос на сброс пароля. Отправляет ссылку с токеном на email
-    """
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -146,6 +140,7 @@ class ResetPasswordView(APIView):
 
 @extend_schema(
     tags=['User'],
+    summary='Установка нового пароля после получения токена',
     request={
         'application/json': {
             'type': 'object',
@@ -160,9 +155,6 @@ class ResetPasswordView(APIView):
     responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
 )
 class ResetPasswordConfirmView(APIView):
-    """
-    Установка нового пароля после получения токена
-    """
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -185,3 +177,21 @@ class ResetPasswordConfirmView(APIView):
             return Response({'Status': True, 'Message': 'Пароль успешно изменен'})
         else:
             return Response({'Status': False, 'Error': 'Неверный токен'}, status=400)
+
+
+# Обертка для TokenObtainPairView
+@extend_schema(
+    tags=["User"],
+    summary='Вход по логину и паролю, получение токенов',
+)
+class CustomTokenObtainPairView(TokenObtainPairView):
+    pass
+
+
+# Обертка для TokenRefreshView
+@extend_schema(
+    tags=['User'],
+    summary='Обновление access-токена',
+)
+class CustomTokenRefreshView(TokenRefreshView):
+    pass

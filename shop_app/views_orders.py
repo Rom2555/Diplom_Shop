@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import F
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -18,9 +18,6 @@ from shop_app.serializers import BasketSerializer, \
     tags=['Basket'],
 )
 class BasketAPIView(APIView):
-    """
-    Класс для работы с корзиной пользователя
-    """
     serializer_class = BasketSerializer
     permission_classes = [IsAuthenticated]
 
@@ -114,7 +111,6 @@ class BasketAPIView(APIView):
 
 
 class BasketDeleteView(APIView):
-    """Удаление товара из корзины по ID в URL"""
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -139,14 +135,11 @@ class BasketDeleteView(APIView):
 
 
 class OrderConfirmView(APIView):
-    """
-    Подтверждение заказа (перевод корзины в статус 'new').
-    Списание со склада и привязка контакта
-    """
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
         tags=['Orders'],
+        summary=f"Подтверждение заказа",
         request=ConfirmOrderSerializer,
         responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
     )
@@ -254,10 +247,17 @@ class OrderConfirmView(APIView):
         return Response({'Status': True, 'Order_ID': basket.id})
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary='Список заказов пользователя',
+        tags=['Orders'],
+    ),
+    retrieve=extend_schema(
+        summary='Детали конкретного заказа',
+        tags=['Orders'],
+    ),
+)
 class OrderViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Просмотр истории заказов и деталей конкретного заказа
-    """
     permission_classes = [IsAuthenticated]
     serializer_class = OrderSerializer
 
@@ -271,6 +271,7 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
 
 @extend_schema(
     tags=['Orders'],
+    summary="Изменение состояния заказа",
     request={
         'application/json': {
             'type': 'object',
@@ -285,9 +286,6 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
     responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
 )
 class OrderStatusView(APIView):
-    """
-    Редактирование статуса заказа
-    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):

@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -9,26 +9,40 @@ from shop_app.serializers import ContactSerializer
 from .serializers import ProductSerializer
 
 
-@extend_schema(
-    tags=['Products'],
+@extend_schema_view(
+    list=extend_schema(
+        summary='Список всех товаров',
+        tags=['Products'],
+    ),
+    retrieve=extend_schema(
+        summary='Получить информацию о товаре по ID',
+        tags=['Products'],
+    ),
 )
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Просмотр каталога товаров и информации по товару
-    """
     queryset = Product.objects.all().select_related('category').prefetch_related('product_parameters')
     serializer_class = ProductSerializer
 
 
-@extend_schema(
-    tags=['Contacts'],
+@extend_schema_view(
+    list=extend_schema(
+        summary='Список всех контактов',
+        tags=['Contacts'],
+    ),
+    create=extend_schema(
+        summary='Добавить новый контакт',
+        tags=['Contacts'],
+    ),
+    retrieve=extend_schema(
+        summary="Получить контакт по id",
+        tags=['Contacts'],
+    ),
+    destroy=extend_schema(
+        summary='Удалить контакт по id',
+        tags=['Contacts']
+    ),
 )
 class ContactViewSet(viewsets.ModelViewSet):
-    """
-    Управление контактами (адресами доставки) пользователя.
-    Доступно только авторизованным пользователям
-    """
-
     permission_classes = [IsAuthenticated]
     serializer_class = ContactSerializer
 
@@ -48,12 +62,10 @@ class ContactViewSet(viewsets.ModelViewSet):
 
 @extend_schema(
     tags=['System'],
+    summary='Проверка работоспособности сервера',
     responses={200: {'type': 'object', 'properties': {'status': {'type': 'string'}}}}
 )
 class HealthCheckView(APIView):
-    """
-    Проверка работоспособности сервера
-    """
     permission_classes = [AllowAny]
 
     def get(self, request):

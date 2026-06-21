@@ -13,6 +13,7 @@ from shop_app.services import import_shop_data_from_yaml
 
 @extend_schema(
     tags=['Partner'],
+    summary='Обновление прайса от поставщика (импорт YAML файла)',
     request={
         'multipart/form-data': {
             'type': 'object',
@@ -29,9 +30,7 @@ from shop_app.services import import_shop_data_from_yaml
     responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
 )
 class PartnerUpdate(APIView):
-    """
-    Класс для обновления прайса от поставщика (импорт YAML файла).
-    """
+
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -67,6 +66,7 @@ class PartnerUpdate(APIView):
 
 @extend_schema(
     tags=['Partner'],
+    summary='Управление состоянием приёма заказов поставщиком',
     request={
         'application/json': {
             'type': 'object',
@@ -80,9 +80,7 @@ class PartnerUpdate(APIView):
     responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
 )
 class PartnerStateView(APIView):
-    """
-    Управление состоянием приёма заказов магазином
-    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
@@ -103,12 +101,11 @@ class PartnerStateView(APIView):
 
 @extend_schema(
     tags=['Partner'],
+    summary="Получить список всех товаров в наличии у партнера",
     responses={200: OrderSerializer(many=True)}
 )
 class PartnerOrdersView(APIView):
-    """
-    Получение заказов поставщиком
-    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
