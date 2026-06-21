@@ -24,6 +24,10 @@ class BasketAPIView(APIView):
     serializer_class = BasketSerializer
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Получить текущую корзину",
+        responses={200: BasketSerializer}
+    )
     def get(self, request, *args, **kwargs):
         # Поиск статуса 'basket' у пользователя
         basket = Order.objects.filter(
@@ -39,6 +43,7 @@ class BasketAPIView(APIView):
         return Response({'Status': True, 'Basket': serializer.data})
 
     @extend_schema(
+        summary="Добавить товар в корзину",
         request=AddToBasketSerializer,
         responses={
             200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}
@@ -60,7 +65,7 @@ class BasketAPIView(APIView):
             # Проверка доступности магазина для заказов
             if not product.category.shop.state:
                 return Response(
-                    {'status': False, 'errors': 'Магазин временно не принимает заказы'}, status=400
+                    {'Status': False, 'Errors': 'Магазин временно не принимает заказы'}, status=400
                 )
 
             # Проверка что продукт относится к этому же магазину
@@ -114,6 +119,7 @@ class BasketDeleteView(APIView):
 
     @extend_schema(
         tags=['Basket'],
+        summary="Удалить позицию из корзины",
         responses={200: {'type': 'object', 'properties': {'Status': {'type': 'boolean'}}}}
     )
     def delete(self, request, *args, **kwargs):
