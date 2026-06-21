@@ -187,6 +187,8 @@ SPECTACULAR_SETTINGS = {
         }
     },
     'SWAGGER_UI_SETTINGS': {
+        'tagsSorter': 'alpha',    # сортировка тегов по алфавиту
+        'operationSorter': 'alpha', # сортировка ручек по алфавиту
         'fetchSchemaWithQuery': False,  # откл загрузка схемы с запросом
         'tryItOutEnabled': False,  # откл кнопка "Try it out"
         'docExpansion': '',  # свернуть эндпоинты
