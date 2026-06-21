@@ -1,6 +1,8 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from shop_app.models import Product, Contact
 from shop_app.serializers import ContactSerializer
@@ -42,3 +44,17 @@ class ContactViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # Автопривязка контактов к пользователю
         serializer.save(user=self.request.user)
+
+
+@extend_schema(
+    tags=['System'],
+    responses={200: {'type': 'object', 'properties': {'status': {'type': 'string'}}}}
+)
+class HealthCheckView(APIView):
+    """
+    Проверка работоспособности сервера
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({'status': 'ok'})
