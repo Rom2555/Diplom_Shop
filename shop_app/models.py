@@ -308,6 +308,10 @@ class Order(models.Model):
         verbose_name_plural = 'Заказы'
         ordering = ('-dt',)
 
+    def total_sum(self):
+        """Общая сумма заказа"""
+        return sum(item.quantity * item.price for item in self.ordered_items.all())
+
     def __str__(self):
         return f'Заказ №{self.id} от {self.dt.strftime("%d.%m.%Y %H:%M")}'
 

@@ -109,7 +109,7 @@ class BasketSerializer(serializers.ModelSerializer):
 
     def get_total_sum(self, obj) -> int:
         # Сумма корзины
-        return sum(item.quantity * item.price for item in obj.ordered_items.all())
+        return obj.total_sum()
 
 
 class AddToBasketSerializer(serializers.Serializer):
@@ -163,7 +163,7 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_total_sum(self, obj) -> int:
-        return sum(item.quantity * item.price for item in obj.ordered_items.all())
+        return obj.total_sum()
 
 
 class TokenConfirmSerializer(serializers.Serializer):
