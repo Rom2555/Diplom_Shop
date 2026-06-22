@@ -88,3 +88,49 @@ def send_status_change(order: Order):
         )
     except Exception as e:
         print(f"ОШИБКА ОТПРАВКИ СТАТУСА: {e}")
+
+
+def send_registration_email(user, token):
+    """ Письмо для подтверждения регистрации """
+    swagger_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/docs/"
+
+    message = (
+        f'Для активации аккаунта перейдите в Swagger: {swagger_url}\n\n'
+        f'Найдите эндпоинт Register Confirm (POST) и отправьте следующий JSON:\n\n'
+        f'{{\n'
+        f'  "token": "{token.key}"\n'
+        f'}}'
+    )
+
+    try:
+        user.email_user(
+            subject=f"Подтверждение регистрации {user.username}",
+            message=message,
+            fail_silently=False,
+        )
+    except Exception as e:
+        print(f"ОШИБКА ОТПРАВКИ EMAIL: {e}")
+
+
+def send_password_reset_email(user, token):
+    """ Письмо для сброса пароля """
+    swagger_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/docs/"
+
+    message = (
+        f'Для сброса пароля перейдите в Swagger: {swagger_url}\n\n'
+        f'Найдите эндпоинт Reset Password Confirm (POST) и отправьте следующий JSON:\n\n'
+        f'{{\n'
+        f'  "user_id": {user.pk},\n'
+        f'  "token": "{token}",\n'
+        f'  "new_password": "Ваш_Новый_Пароль"\n'
+        f'}}'
+    )
+
+    try:
+        user.email_user(
+            subject='Сброс пароля',
+            message=message,
+            fail_silently=False
+        )
+    except Exception as e:
+        print(f"ОШИБКА ОТПРАВКИ EMAIL: {e}")

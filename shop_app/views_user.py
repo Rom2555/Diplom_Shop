@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from diplom_shop import settings
+from shop_app.mail import send_registration_email, send_password_reset_email
 from shop_app.models import ConfirmEmailToken
 from shop_app.serializers import RegisterSerializer, TokenConfirmSerializer
 
@@ -69,19 +69,9 @@ class RegisterAccount(APIView):
 
         # Подтверждение регистрации Яндекс
         token, _ = ConfirmEmailToken.objects.get_or_create(user_id=user.id)
-        confirm_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/v1/user/register/confirm/"
 
-        try:
-            # Текст письма
-            user.email_user(
-                subject=f"Подтверждение регистрации {user.username}",
-                message=f'Для подтверждения аккаунта используйте API эндпоинт: {confirm_url}\n\n'
-                        f'Вставьте следующий токен в Swagger:\n'
-                        f'"token": "{token.key}"',
-                fail_silently=False,
-            )
-        except Exception as e:
-            print(f"ОШИБКА ОТПРАВКИ EMAIL: {e}")
+        # Отправка письма
+        send_registration_email(user, token)
 
         return Response(
             {
@@ -118,24 +108,17 @@ class ResetPasswordView(APIView):
             user = User.objects.get(email=email)
             # Токен
             token = default_token_generator.make_token(user)
-
-            # Ссылка для сброса пароля
-            reset_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/v1/user/password/reset/confirm/"
-
-            # Текст email
-            user.email_user(
-                'Сброс пароля',
-                f'Для сброса пароля пройдите по ссылке: {reset_url}\n\n'
-                f'Вставьте следующие данные:\n'
-                f'"user_id": {user.pk}\n'
-                f'"token": "{token}"\n'
-                f'"new_password": "Ваш_Новый_Пароль"',
-                fail_silently=False
-            )
+            # Отправка письма
+            send_password_reset_email(user, token)
         except User.DoesNotExist:
             pass  # Безопасность. Не сообщать что пользователь не найден
 
-        return Response({'Status': True})
+        return Response(
+            {
+                'Status': True,
+                'messages': u'На ваш email отправлено письмо для сброса пароля.'
+            },
+        )
 
 
 @extend_schema(

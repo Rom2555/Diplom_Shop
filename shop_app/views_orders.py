@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from mail import send_status_change, send_new_order
+from shop_app.mail import send_status_change, send_new_order
 from shop_app.models import Product, Contact, Order, OrderItem
 from shop_app.serializers import BasketSerializer, \
     AddToBasketSerializer, ConfirmOrderSerializer, OrderSerializer
