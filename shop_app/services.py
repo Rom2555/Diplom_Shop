@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from shop_app.models import Shop, Category, Product, Parameter, ProductParameter
+from shop_app.models import Shop, Category, Product, Parameter, ProductParameter, OrderItem
 
 
 # Декоратор транзакции
@@ -29,14 +29,19 @@ def import_shop_data_from_yaml(yaml_data):
             }
         )
 
-    # Удаление старых товаров магазина перед обновлением прайса
-    Product.objects.filter(category__shop=shop).delete()
+    # Удаление товаров магазина, которых нет в заказах, перед обновлением прайса
+    safe_to_delete = Product.objects.filter(
+        category__shop=shop
+    ).exclude(
+        id__in=OrderItem.objects.values_list('product_id', flat=True)
+    )
+    safe_to_delete.delete()
 
     # Загрузка товаров
     for item in yaml_data.get('goods', []):
         category = Category.objects.get(id=item['category'], shop=shop)
 
-        product, _ = Product.objects.get_or_create(
+        product, _ = Product.objects.update_or_create(
             id=item['id'],
             defaults={
                 'name': item['name'],

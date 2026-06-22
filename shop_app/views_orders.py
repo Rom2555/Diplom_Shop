@@ -1,5 +1,3 @@
-from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import F
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -8,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from diplom_shop import settings
+from mail import send_status_change, send_new_order
 from shop_app.models import Product, Contact, Order, OrderItem
 from shop_app.serializers import BasketSerializer, \
     AddToBasketSerializer, ConfirmOrderSerializer, OrderSerializer
@@ -187,62 +185,8 @@ class OrderConfirmView(APIView):
         basket.contact = contact
         basket.save()
 
-        # ******* ОТПРАВКА ПИСЕМ **********
-
-        User = get_user_model()
-
-        # Письмо клиенту (подтверждение)
-        try:
-            send_mail(
-                subject=f'Заказ №{basket.id} оформлен',
-                message=f'Здравствуйте! Ваш заказ принят в обработку.',
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[request.user.email],
-                fail_silently=False,
-            )
-        except Exception as e:
-            print(f"ОШИБКА ОТПРАВКИ EMAIL КЛИЕНТУ: {e}")
-
-        # Письмо администратору (накладная)
-        admin_emails = list(User.objects.filter(is_superuser=True, is_active=True).values_list('email', flat=True))
-        if admin_emails:
-            # Таблица с товарами
-            items_text = "\n".join(
-                [f"- {item.product.name} | Количество: {item.quantity} | Цена: {item.price}"
-                 for item in basket.ordered_items.all()]
-            )
-
-            # Сборка полного адреса доставки
-            address_parts = [
-                contact.city,
-                f"ул. {contact.street}",
-                f"д. {contact.house}"
-            ]
-            if contact.structure: address_parts.append(f"корп. {contact.structure}")
-            if contact.building: address_parts.append(f"стр. {contact.building}")
-            if contact.apartment: address_parts.append(f"кв. {contact.apartment}")
-            full_address = ", ".join(address_parts)
-
-            # Текст накладной
-            invoice_text = (
-                f"Новый заказ №{basket.id}\n"
-                f"Покупатель: {request.user.username} (ID: {request.user.id})\n"
-                f"Телефон: {contact.phone}\n"
-                f"Адрес доставки: {full_address}\n\n"
-                f"Состав заказа:\n{items_text}"
-            )
-
-            try:
-                send_mail(
-                    subject=f'Новая накладная: Заказ №{basket.id}',
-                    message=invoice_text,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=admin_emails,
-                    fail_silently=False,
-                )
-            except Exception as e:
-                print(f"ОШИБКА ОТПРАВКИ EMAIL АДМИНИСТРАТОРУ: {e}")
-        # ****************************
+        # Отправка писем
+        send_new_order(basket)
 
         return Response({'Status': True, 'Order_ID': basket.id})
 
@@ -306,16 +250,7 @@ class OrderStatusView(APIView):
             order.save()
 
             # Отправка письма клиенту
-            try:
-                send_mail(
-                    subject=f'Обновление статуса заказа № {order.id}',
-                    message=f'Статус вашего заказа № {order.id} изменен на: "{order.get_state_display()}".',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[order.user.email],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                print(f"ОШИБКА ОТПРАВКИ СТАТУСА: {e}")
+            send_status_change(order)
 
             return Response({'Status': True})
         except Order.DoesNotExist:
