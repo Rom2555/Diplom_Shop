@@ -11,9 +11,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput
-RUN chmod -R 755 /app/staticfiles # права на чтение для nginx
-
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate && gunicorn diplom_shop.wsgi:application --bind 0.0.0.0:8000 --workers 3"]
+CMD ["sh", "-c", "python manage.py collectstatic --noinput && chmod -R 755 /app/staticfiles && python manage.py migrate && gunicorn diplom_shop.wsgi:application --bind 0.0.0.0:8000 --workers 3"]
