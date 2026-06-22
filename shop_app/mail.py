@@ -21,21 +21,21 @@ def send_new_order(order: Order):
     total = order.total_sum()
 
     items_list = "\n".join(
-        [f"- {item.product.name} (x{item.quantity}) — {item.price * item.quantity} руб."
+        [f"- {item.product.name} (x{item.quantity}) - {item.price * item.quantity} руб."
          for item in order.ordered_items.all()]
     )
 
     # Письмо клиенту
     client_msg = (
         f"Здравствуйте, {order.user.username}!\n\n"
-        f"Ваш заказ №{order.id} от {order.dt.strftime('%d.%m.%Y %H:%M')} принят в обработку.\n\n"
+        f"Ваш заказ № {order.id} от {order.dt.strftime('%d.%m.%Y %H:%M')} принят в обработку.\n\n"
         f"СОСТАВ:\n{items_list}\n\n"
         f"ИТОГО: {total} руб."
     )
 
     try:
         send_mail(
-            subject=f'Ваш заказ №{order.id} оформлен',
+            subject=f'Ваш заказ № {order.id} оформлен',
             message=client_msg,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[order.user.email],
@@ -50,8 +50,9 @@ def send_new_order(order: Order):
         return
 
     admin_msg = (
-        f"НОВЫЙ ЗАКАЗ №{order.id}\n"
-        f"Покупатель: {order.user.username} | Тел: {order.contact.phone}\n"
+        f"НОВЫЙ ЗАКАЗ № {order.id}\n"
+        f"Покупатель: {order.user.username}\n"
+        f"Тел: {order.contact.phone}\n"
         f"Адрес: {get_address(order.contact)}\n\n"
         f"СОСТАВ:\n{items_list}\n\n"
         f"ИТОГО: {total} руб."
@@ -59,7 +60,7 @@ def send_new_order(order: Order):
 
     try:
         send_mail(
-            subject=f'Накладная: Заказ №{order.id}',
+            subject=f'Накладная: Заказ № {order.id}',
             message=admin_msg,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=admin_emails,
@@ -75,12 +76,12 @@ def send_status_change(order: Order):
 
     msg = (
         f"Здравствуйте, {order.user.username}!\n\n"
-        f"Статус заказа №{order.id} изменен на: {status_text}."
+        f"Статус заказа № {order.id} изменен на: {status_text}."
     )
 
     try:
         send_mail(
-            subject=f'Статус заказа №{order.id}',
+            subject=f'Статус заказа № {order.id}',
             message=msg,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[order.user.email],
