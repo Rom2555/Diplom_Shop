@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from shop_app.models import ProductParameter, Product, Contact, Order, OrderItem
 
@@ -9,7 +10,15 @@ class RegisterSerializer(serializers.ModelSerializer):
     Сериализатор для регистрации нового пользователя
     """
     password = serializers.CharField(write_only=True)
-    username = serializers.CharField(help_text='Имя пользователя')
+    username = serializers.CharField(
+        help_text='Имя пользователя',
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="Пользователь с таким именем уже существует"
+            )
+        ]
+    )
 
     class Meta:
         model = User
