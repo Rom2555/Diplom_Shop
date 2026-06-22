@@ -20,8 +20,9 @@ jobs:
             cd ~/Diplom_Shop
             git fetch origin
             git reset --hard origin/main
-            docker-compose down
-            docker-compose up -d --build
+            docker-compose down -v
+            docker-compose build --no-cache
+            docker-compose up -d
 
             echo "Ожидание 10 секунд пока поднимутся все контейнеры..."
             sleep 10
