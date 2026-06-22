@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from shop_app.models import Order
 from shop_app.models import Shop
-from shop_app.serializers import YAMLUploadSerializer, OrderSerializer
+from shop_app.serializers import YAMLUploadSerializer, OrderSerializer, ShopIdQuerySerializer
 from shop_app.services import import_shop_data_from_yaml
 
 
@@ -102,6 +102,7 @@ class PartnerStateView(APIView):
 @extend_schema(
     tags=['Partner'],
     summary="Получить список всех товаров в наличии у партнера",
+    parameters=[ShopIdQuerySerializer],
     responses={200: OrderSerializer(many=True)}
 )
 class PartnerOrdersView(APIView):

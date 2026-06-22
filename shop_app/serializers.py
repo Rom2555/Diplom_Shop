@@ -171,3 +171,8 @@ class TokenConfirmSerializer(serializers.Serializer):
     Сериализатор для приема токена из письма
     """
     token = serializers.CharField(help_text='Токен подтверждения из письма')
+
+
+class ShopIdQuerySerializer(serializers.Serializer):
+    """ Сериализатор для поля id магазина поставщика """
+    shop_id = serializers.IntegerField(help_text='ID магазина поставщика')
