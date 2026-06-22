@@ -19,6 +19,16 @@ class RegisterSerializer(serializers.ModelSerializer):
             )
         ]
     )
+    email = serializers.EmailField(
+        help_text='Электронная почта',
+        required=True,  # Обязательное поле для регистрации
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="Пользователь с такой почтой уже зарегистрирован"
+            )
+        ]
+    )
 
     class Meta:
         model = User

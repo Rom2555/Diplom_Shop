@@ -99,11 +99,14 @@ class ResetPasswordView(APIView):
             return Response({'Status': False, 'Error': 'Укажите email'}, status=400)
 
         try:
-            user = User.objects.get(email=email)
-            # Токен
-            token = default_token_generator.make_token(user)
-            # Отправка письма
-            send_password_reset_email(user, token)
+            user = User.objects.filter(email=email).first()
+            if not user:
+                pass
+            else:
+                # Токен
+                token = default_token_generator.make_token(user)
+                # Отправка письма
+                send_password_reset_email(user, token)
         except User.DoesNotExist:
             pass  # Безопасность. Не сообщать что пользователь не найден
 
