@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 RUN python manage.py collectstatic --noinput
+RUN chmod -R 755 /app/staticfiles # права на чтение для nginx
 
 EXPOSE 8000
 

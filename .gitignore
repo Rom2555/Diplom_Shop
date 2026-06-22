@@ -32,3 +32,6 @@ build/
 *.tmp
 *.swp
 *~
+
+# Статика
+staticfiles/
