@@ -23,12 +23,6 @@ from shop_app.serializers import RegisterSerializer, TokenConfirmSerializer
 )
 class RegisterConfirmView(APIView):
 
-    def get(self, request, *args, **kwargs):
-        return Response(
-            {"detail": "Пожалуйста, отправьте POST запрос с токеном через Swagger (API Docs)"},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED
-        )
-
     def post(self, request, *args, **kwargs):
         token = request.data.get('token')
         if not token:
