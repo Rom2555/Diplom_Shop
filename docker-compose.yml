@@ -32,6 +32,8 @@ services:
       - .env
     expose:
       - "8000"
+    volumes:
+      - static_volume:/app/staticfiles
     depends_on:
       db:
         condition: service_healthy
