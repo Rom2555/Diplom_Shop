@@ -55,7 +55,7 @@ class BasketAPIView(APIView):
 
         try:
             # Поиск товара и проверка остатка
-            product = Product.objects.select_related('category__shop').get(id=product_id)
+            product = Product.objects.select_related('category__shop').get(original_id=product_id)
 
             # Проверка доступности магазина для заказов
             if not product.category.shop.state:
