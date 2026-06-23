@@ -6,7 +6,7 @@ from .models import Shop, Category, Product, Parameter, ProductParameter
 
 @admin.register(Shop)
 class ShopAdmin(admin.ModelAdmin):
-    list_display = ('name', 'state')
+    list_display = ('id', 'name', 'state')
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
