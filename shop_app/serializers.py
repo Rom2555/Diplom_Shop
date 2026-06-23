@@ -166,7 +166,7 @@ class OrderSerializer(serializers.ModelSerializer):
     """
     Сериализатор для вывода истории заказов и деталей заказа
     """
-    ordered_items = OrderItemForOrderSerializer(many=True, read_only=True)
+    ordered_items = serializers.SerializerMethodField() # как метод
     contact = ContactForOrderSerializer(read_only=True)
     total_sum = serializers.SerializerMethodField()
 
@@ -177,6 +177,17 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_total_sum(self, obj) -> int:
         return obj.total_sum()
+
+    def get_ordered_items(self, obj):
+        # shop_id из запроса партнера
+        request_shop_id = self.context.get('request_shop_id')
+        items = obj.ordered_items.all()
+
+        # Если shop_id передан (партнер)
+        if request_shop_id is not None:
+            items = items.filter(shop_id=request_shop_id) # фильтр по shop_id
+
+        return OrderItemForOrderSerializer(items, many=True).data
 
 
 class TokenConfirmSerializer(serializers.Serializer):

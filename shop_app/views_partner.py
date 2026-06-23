@@ -101,7 +101,7 @@ class PartnerStateView(APIView):
 
 @extend_schema(
     tags=['Partner'],
-    summary="Получить список всех товаров в наличии у партнера",
+    summary="Получить список всех заказов у конкретного магазина",
     parameters=[ShopIdQuerySerializer],
     responses={200: OrderSerializer(many=True)}
 )
@@ -119,5 +119,8 @@ class PartnerOrdersView(APIView):
             ordered_items__shop_id=shop_id
         ).exclude(state='basket').distinct().prefetch_related('ordered_items__product', 'contact')
 
-        serializer = OrderSerializer(orders, many=True)
+        serializer = OrderSerializer(
+            orders,
+            many=True,
+            context={'request_shop_id': int(shop_id)})
         return Response(serializer.data)
