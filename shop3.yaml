@@ -1,0 +1,27 @@
+shop: Все для дома
+categories:
+  - id: 1
+    name: Инструменты
+  - id: 2
+    name: Для кухни
+goods:
+  - id: 201
+    category: 1
+    name: Дрель Makita
+    model: makita/drill/18v
+    price: 8500.00
+    price_rrc: 12000.00
+    quantity: 8
+    parameters:
+      "Мощность": "18В"
+      "Тип патрона": "Зубчатый"
+  - id: 202
+    category: 2
+    name: Термокружка Xiaomi
+    model: xiaomi/thermos/500ml
+    price: 1200.00
+    price_rrc: 1600.00
+    quantity: 30
+    parameters:
+      "Объем": "500 мл"
+      "Цвет": "Белый"

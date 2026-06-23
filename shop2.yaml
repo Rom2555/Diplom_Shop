@@ -1,0 +1,27 @@
+shop: ТехноМир
+categories:
+  - id: 1
+    name: Аудио
+  - id: 2
+    name: Аксессуары
+goods:
+  - id: 101
+    category: 1
+    name: Наушники Sony WH-1000XM4
+    model: sony/wh-1000xm4/black
+    price: 22000.00
+    price_rrc: 28000.00
+    quantity: 15
+    parameters:
+      "Тип": "Полноразмерные"
+      "Цвет": "Черный"
+  - id: 102
+    category: 2
+    name: Повербанк Xiaomi 20000
+    model: xiaomi/powerbank/20000mah
+    price: 1500.00
+    price_rrc: 2000.00
+    quantity: 50
+    parameters:
+      "Емкость": "20000 мАч"
+      "Вес": "400г"
