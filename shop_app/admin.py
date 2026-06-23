@@ -10,11 +10,11 @@ class ShopAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'shop')
+    list_display = ('original_id', 'name', 'shop')
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'model', 'price', 'quantity', 'category')
+    list_display = ('original_id', 'name', 'model', 'price', 'quantity', 'category')
 
 @admin.register(Parameter)
 class ParameterAdmin(admin.ModelAdmin):

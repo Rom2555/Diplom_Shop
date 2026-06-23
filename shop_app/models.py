@@ -44,8 +44,7 @@ class Category(models.Model):
     Привязана к магазину. ID категорий у разных
     поставщиков могут совпадать, но означать разное.
     """
-    id = models.PositiveIntegerField(
-        primary_key=True,
+    original_id = models.PositiveIntegerField(
         verbose_name='ID категории',
         help_text='ID категории из прайс-листа поставщика'
     )
@@ -67,13 +66,13 @@ class Category(models.Model):
         verbose_name_plural = 'Категории'
         constraints = [
             models.UniqueConstraint(
-                fields=['id', 'shop'],
+                fields=['original_id', 'shop'],
                 name='unique_category_per_shop'
             )
         ]
 
     def __str__(self):
-        return f'{self.name} (ID: {self.id})'
+        return f'{self.name} (ID: {self.original_id})'
 
 
 class Product(models.Model):
@@ -81,8 +80,7 @@ class Product(models.Model):
     Модель товара.
     Содержит цены и наличие.
     """
-    id = models.PositiveIntegerField(
-        primary_key=True,
+    original_id = models.PositiveIntegerField(
         verbose_name='ID товара',
         help_text='Уникальный идентификатор товара из системы поставщика'
     )
@@ -128,7 +126,7 @@ class Product(models.Model):
         verbose_name_plural = 'Продукты'
         constraints = [
             models.UniqueConstraint(
-                fields=['id', 'category'],
+                fields=['original_id', 'category'],
                 name='unique_product_per_category'
             )
         ]
