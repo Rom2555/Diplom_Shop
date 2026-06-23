@@ -22,6 +22,7 @@ from .serializers import ProductSerializer
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Product.objects.all().select_related('category').prefetch_related('product_parameters')
     serializer_class = ProductSerializer
+    lookup_field = 'original_id'
 
 
 @extend_schema_view(
