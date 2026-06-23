@@ -23,9 +23,9 @@ def import_shop_data_from_yaml(yaml_data):
     for cat_data in yaml_data.get('categories', []):
         Category.objects.get_or_create(
             id=cat_data['id'],
+            shop=shop,
             defaults={
                 'name': cat_data['name'],
-                'shop': shop
             }
         )
 
