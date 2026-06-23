@@ -74,11 +74,14 @@ class ProductSerializer(serializers.ModelSerializer):
     """
     product_parameters = ProductParameterSerializer(many=True, read_only=True)
     category = serializers.StringRelatedField()
+    shop_id = serializers.IntegerField(source='category.shop.id', read_only=True)
+    shop_name = serializers.CharField(source='category.shop.name', read_only=True)
 
     class Meta:
         model = Product
         fields = (
             'original_id', 'name', 'model', 'category',
+            'shop_id', 'shop_name',
             'price', 'price_rrc', 'quantity', 'product_parameters'
         )
 
