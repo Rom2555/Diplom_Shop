@@ -9,7 +9,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from shop_app.mail import send_password_reset_email, send_registration_email
 from shop_app.models import ConfirmEmailToken
-from shop_app.serializers import RegisterSerializer, TokenConfirmSerializer, ResetPasswordQuerySerializer
+from shop_app.serializers import RegisterSerializer, TokenConfirmSerializer, ResetPasswordQuerySerializer, \
+    PasswordResetConfirmSerializer
 
 
 @extend_schema(
@@ -110,17 +111,7 @@ class ResetPasswordView(APIView):
 @extend_schema(
     tags=["User"],
     summary="Установка нового пароля после получения токена",
-    request={
-        "application/json": {
-            "type": "object",
-            "properties": {
-                "user_id": {"type": "integer", "description": "ID пользователя из письма"},
-                "token": {"type": "string", "description": "Токен из письма"},
-                "new_password": {"type": "string", "description": "Новый пароль"},
-            },
-            "required": ["user_id", "token", "new_password"],
-        }
-    },
+    request=PasswordResetConfirmSerializer,
     responses={200: {"type": "object", "properties": {"Status": {"type": "boolean"}}}},
 )
 class ResetPasswordConfirmView(APIView):

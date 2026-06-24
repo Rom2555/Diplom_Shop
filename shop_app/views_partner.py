@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from shop_app.models import Order, Shop
-from shop_app.serializers import OrderSerializer, ShopIdQuerySerializer, YAMLUploadSerializer
+from shop_app.serializers import OrderSerializer, ShopIdQuerySerializer, YAMLUploadSerializer, ShopStateSerializer
 from shop_app.services import import_shop_data_from_yaml
 
 
@@ -58,16 +58,7 @@ class PartnerUpdate(APIView):
 @extend_schema(
     tags=["Partner"],
     summary="Управление состоянием приёма заказов поставщиком",
-    request={
-        "application/json": {
-            "type": "object",
-            "properties": {
-                "shop_id": {"type": "integer", "description": "ID магазина"},
-                "state": {"type": "boolean", "description": "Статус приема заказов (True/False)"},
-            },
-            "required": ["shop_id", "state"],
-        }
-    },
+    request=ShopStateSerializer,
     responses={200: {"type": "object", "properties": {"Status": {"type": "boolean"}}}},
 )
 class PartnerStateView(APIView):

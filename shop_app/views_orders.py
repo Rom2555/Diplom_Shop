@@ -12,7 +12,7 @@ from shop_app.serializers import (
     AddToBasketSerializer,
     BasketSerializer,
     ConfirmOrderSerializer,
-    OrderSerializer,
+    OrderSerializer, OrderStatusSerializer,
 )
 
 
@@ -262,19 +262,7 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
 @extend_schema(
     tags=["Orders"],
     summary="Изменение состояния заказа",
-    request={
-        "application/json": {
-            "type": "object",
-            "properties": {
-                "order_id": {"type": "integer", "description": "ID заказа"},
-                "state": {
-                    "type": "string",
-                    "description": "Новый статус (new, confirmed, assembled, sent, delivered, canceled)",
-                },
-            },
-            "required": ["order_id", "state"],
-        }
-    },
+    request=OrderStatusSerializer,
     responses={200: {"type": "object", "properties": {"Status": {"type": "boolean"}}}},
 )
 class OrderStatusView(APIView):

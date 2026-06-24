@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from rest_framework.utils.serializer_helpers import ReturnDict
 from rest_framework.validators import UniqueValidator
 
 from shop_app.models import Contact, Order, OrderItem, Product, ProductParameter
@@ -214,4 +213,27 @@ class ShopIdQuerySerializer(serializers.Serializer):
 
 class ResetPasswordQuerySerializer(serializers.Serializer):
     """Сериализатор для сброса пароля"""
+
     email = serializers.EmailField(help_text='Email пользователя')
+
+
+class ShopStateSerializer(serializers.Serializer):
+    """Сериализатор для изменения статуса магазина"""
+
+    shop_id = serializers.IntegerField(help_text='ID магазина')
+    state = serializers.BooleanField(help_text='Статус приема заказов (True/False)')
+
+
+class OrderStatusSerializer(serializers.Serializer):
+
+    """Сериализатор для изменения статуса заказа"""
+    order_id = serializers.IntegerField(help_text='ID заказа')
+    state = serializers.CharField(help_text='Новый статус (new, confirmed, sent...)')
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+
+    """Сериализатор для установки нового пароля"""
+    user_id = serializers.IntegerField(help_text='ID пользователя из письма')
+    token = serializers.CharField(help_text='Токен из письма')
+    new_password = serializers.CharField(help_text='Новый пароль')
