@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.db.models import F
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -148,7 +148,7 @@ class BasketDeleteView(APIView):
                 id=items_id, order__user=request.user, order__state="basket"
             )
             item.delete()
-            return Response({"Status": True})
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except OrderItem.DoesNotExist:
             return Response(
                 {"Status": False, "Errors": "Позиция не найдена в корзине"}, status=404
