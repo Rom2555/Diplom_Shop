@@ -27,7 +27,7 @@ class BasketAPIView(APIView):
 
         # Если корзины нет - вернуть пустой объект
         if not basket:
-            return Response({"Status": True, "Basket": []})
+            return Response({"Status": False, "Basket": []})
 
         serializer = BasketSerializer(basket)
         return Response({"Status": True, "Basket": serializer.data})

@@ -104,6 +104,8 @@ class PartnerOrdersView(APIView):
         shop_id = request.query_params.get("shop_id")
         if not shop_id:
             return Response({"Status": False, "Error": "Укажите shop_id"}, status=400)
+        if not Shop.objects.filter(id=shop_id).exists():
+            return Response({'Status': False, 'Error': 'Магазин не найден'}, status=400)
 
         # Поиск заказов с товарами этого магазина, кроме состояния - корзина
         orders = (
