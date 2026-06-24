@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework.utils.serializer_helpers import ReturnDict
 from rest_framework.validators import UniqueValidator
 
 from shop_app.models import Contact, Order, OrderItem, Product, ProductParameter
@@ -185,7 +186,7 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_total_sum(self, obj) -> int:
         return obj.total_sum()
 
-    def get_ordered_items(self, obj):
+    def get_ordered_items(self, obj) -> list:
         # shop_id из запроса партнера
         request_shop_id = self.context.get("request_shop_id")
         items = obj.ordered_items.all()
