@@ -168,7 +168,7 @@ class OrderConfirmView(APIView):
         # Отправка писем
         send_new_order(basket)
 
-        return Response({"Status": True, "Order_ID": basket.id})
+        return Response({"Status": True, "Order_ID": basket.id, "Message": "Письмо с заказом отправлено на email"})
 
 
 @extend_schema_view(
@@ -237,6 +237,11 @@ class OrderStatusView(APIView):
             # Отправка письма клиенту
             send_status_change(order)
 
-            return Response({"Status": True})
+            return Response(
+                {
+                    "Status": True,
+                    "Message": f"Статус изменен на '{order.get_state_display()}', на email отправлено сообщение"
+                }
+            )
         except Order.DoesNotExist:
             return Response({"Status": False, "Errors": "Заказ не найден"}, status=404)
