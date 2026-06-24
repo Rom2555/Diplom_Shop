@@ -209,3 +209,8 @@ class ShopIdQuerySerializer(serializers.Serializer):
     """Сериализатор для поля id магазина поставщика"""
 
     shop_id = serializers.IntegerField(help_text="ID магазина поставщика")
+
+
+class ResetPasswordQuerySerializer(serializers.Serializer):
+    """Сериализатор для сброса пароля"""
+    email = serializers.EmailField(help_text='Email пользователя')
