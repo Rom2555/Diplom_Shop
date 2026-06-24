@@ -8,21 +8,26 @@ User = get_user_model()
 
 
 def get_address(contact) -> str:
-    """ Собирает строку адреса """
+    """Собирает строку адреса"""
     address_parts = [contact.city, f"ул. {contact.street}", f"д. {contact.house}"]
-    if contact.structure: address_parts.append(f"корп. {contact.structure}")
-    if contact.building: address_parts.append(f"стр. {contact.building}")
-    if contact.apartment: address_parts.append(f"кв. {contact.apartment}")
+    if contact.structure:
+        address_parts.append(f"корп. {contact.structure}")
+    if contact.building:
+        address_parts.append(f"стр. {contact.building}")
+    if contact.apartment:
+        address_parts.append(f"кв. {contact.apartment}")
     return ", ".join(address_parts)
 
 
 def send_new_order(order: Order):
-    """ Письма при оформлении заказа """
+    """Письма при оформлении заказа"""
     total = order.total_sum()
 
     items_list = "\n".join(
-        [f"- {item.product.name} (x{item.quantity}) - {item.price * item.quantity} руб."
-         for item in order.ordered_items.all()]
+        [
+            f"- {item.product.name} (x{item.quantity}) - {item.price * item.quantity} руб."
+            for item in order.ordered_items.all()
+        ]
     )
 
     # Письмо клиенту
@@ -35,7 +40,7 @@ def send_new_order(order: Order):
 
     try:
         send_mail(
-            subject=f'Ваш заказ № {order.id} оформлен',
+            subject=f"Ваш заказ № {order.id} оформлен",
             message=client_msg,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[order.user.email],
@@ -45,7 +50,7 @@ def send_new_order(order: Order):
         print(f"ОШИБКА ОТПРАВКИ EMAIL КЛИЕНТУ: {e}")
 
     # 2. Письмо-накладная админу
-    admin_emails = list(User.objects.filter(is_superuser=True, is_active=True).values_list('email', flat=True))
+    admin_emails = list(User.objects.filter(is_superuser=True, is_active=True).values_list("email", flat=True))
     if not admin_emails:
         return
 
@@ -60,7 +65,7 @@ def send_new_order(order: Order):
 
     try:
         send_mail(
-            subject=f'Накладная: Заказ № {order.id}',
+            subject=f"Накладная: Заказ № {order.id}",
             message=admin_msg,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=admin_emails,
@@ -71,7 +76,7 @@ def send_new_order(order: Order):
 
 
 def send_status_change(order: Order):
-    """ Письмо о смене статуса """
+    """Письмо о смене статуса"""
     status_text = order.get_state_display()
 
     msg = (
@@ -81,7 +86,7 @@ def send_status_change(order: Order):
 
     try:
         send_mail(
-            subject=f'Статус заказа № {order.id}',
+            subject=f"Статус заказа № {order.id}",
             message=msg,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[order.user.email],
@@ -92,15 +97,15 @@ def send_status_change(order: Order):
 
 
 def send_registration_email(user, token):
-    """ Письмо для подтверждения регистрации """
+    """Письмо для подтверждения регистрации"""
     swagger_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/docs/"
 
     message = (
-        f'Для активации аккаунта перейдите в Swagger: {swagger_url}\n\n'
-        f'Найдите эндпоинт Register Confirm (POST) и отправьте следующий JSON:\n\n'
-        f'{{\n'
+        f"Для активации аккаунта перейдите в Swagger: {swagger_url}\n\n"
+        f"Найдите эндпоинт Register Confirm (POST) и отправьте следующий JSON:\n\n"
+        f"{{\n"
         f'  "token": "{token.key}"\n'
-        f'}}'
+        f"}}"
     )
 
     try:
@@ -114,24 +119,20 @@ def send_registration_email(user, token):
 
 
 def send_password_reset_email(user, token):
-    """ Письмо для сброса пароля """
+    """Письмо для сброса пароля"""
     swagger_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/docs/"
 
     message = (
-        f'Для сброса пароля перейдите в Swagger: {swagger_url}\n\n'
-        f'Найдите эндпоинт Reset Password Confirm (POST) и отправьте следующий JSON:\n\n'
-        f'{{\n'
+        f"Для сброса пароля перейдите в Swagger: {swagger_url}\n\n"
+        f"Найдите эндпоинт Reset Password Confirm (POST) и отправьте следующий JSON:\n\n"
+        f"{{\n"
         f'  "user_id": {user.pk},\n'
         f'  "token": "{token}",\n'
         f'  "new_password": "Ваш_Новый_Пароль"\n'
-        f'}}'
+        f"}}"
     )
 
     try:
-        user.email_user(
-            subject='Сброс пароля',
-            message=message,
-            fail_silently=False
-        )
+        user.email_user(subject="Сброс пароля", message=message, fail_silently=False)
     except Exception as e:
         print(f"ОШИБКА ОТПРАВКИ EMAIL: {e}")

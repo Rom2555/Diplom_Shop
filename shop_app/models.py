@@ -10,6 +10,7 @@ class Shop(models.Model):
     Содержит информацию о магазине и флаг, разрешающий или запрещающий
     прием заказов от данного поставщика.
     """
+
     name = models.CharField(
         max_length=100,
         verbose_name='Название',
@@ -23,16 +24,16 @@ class Shop(models.Model):
         help_text='URL поставщика'
     )
     state = models.BooleanField(
-        verbose_name='Статус приёма заказов',
+        verbose_name="Статус приёма заказов",
         default=True,
         db_index=True,  # Индекс для быстрого поиска активных магазинов в БД
-        help_text='Включено - магазин принимает заказы, Выключено - импорт идет, но заказы не принимаются'
+        help_text="Включено - магазин принимает заказы, Выключено - импорт идет, но заказы не принимаются",
     )
 
     class Meta:
-        verbose_name = 'Магазин'
-        verbose_name_plural = 'Магазины'
-        ordering = ['name']
+        verbose_name = "Магазин"
+        verbose_name_plural = "Магазины"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -44,6 +45,7 @@ class Category(models.Model):
     Привязана к магазину. ID категорий у разных
     поставщиков могут совпадать, но означать разное.
     """
+
     original_id = models.PositiveIntegerField(
         verbose_name='ID категории',
         help_text='ID категории из прайс-листа поставщика'
@@ -55,24 +57,19 @@ class Category(models.Model):
     )
     shop = models.ForeignKey(
         Shop,
-        verbose_name='Магазин',
-        related_name='categories',
+        verbose_name="Магазин",
+        related_name="categories",
         on_delete=models.CASCADE,
-        help_text='Магазин, к которому относится данная категория'
+        help_text="Магазин, к которому относится данная категория",
     )
 
     class Meta:
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['original_id', 'shop'],
-                name='unique_category_per_shop'
-            )
-        ]
+        verbose_name = "Категория"
+        verbose_name_plural = "Категории"
+        constraints = [models.UniqueConstraint(fields=["original_id", "shop"], name="unique_category_per_shop")]
 
     def __str__(self):
-        return f'{self.name} (ID: {self.original_id})'
+        return f"{self.name} (ID: {self.original_id})"
 
 
 class Product(models.Model):
@@ -80,6 +77,7 @@ class Product(models.Model):
     Модель товара.
     Содержит цены и наличие.
     """
+
     original_id = models.PositiveIntegerField(
         verbose_name='ID товара',
         help_text='Уникальный идентификатор товара из системы поставщика'
@@ -91,48 +89,42 @@ class Product(models.Model):
     )
     model = models.CharField(
         max_length=255,
-        verbose_name='Модель',
+        verbose_name="Модель",
         blank=True,
-        help_text='Техническое название модели (например: apple/iphone/xs-max)'
+        help_text="Техническое название модели (например: apple/iphone/xs-max)",
     )
     category = models.ForeignKey(
         Category,
-        verbose_name='Категория',
-        related_name='products',
+        verbose_name="Категория",
+        related_name="products",
         on_delete=models.CASCADE,
-        help_text='Категория, к которой принадлежит товар'
+        help_text="Категория, к которой принадлежит товар",
     )
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name='Цена',
+        verbose_name="Цена",
         validators=[MinValueValidator(0)],
-        help_text='Текущая цена закупки'
+        help_text="Текущая цена закупки",
     )
     price_rrc = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name='Рекомендуемая розничная цена',
+        verbose_name="Рекомендуемая розничная цена",
         validators=[MinValueValidator(0)],
-        help_text='Рекомендуемая розничная цена (РРЦ)'
+        help_text="Рекомендуемая розничная цена (РРЦ)",
     )
     quantity = models.PositiveIntegerField(
-        verbose_name='Количество на складе',
-        help_text='Текущий остаток на складе поставщика'
+        verbose_name="Количество на складе", help_text="Текущий остаток на складе поставщика"
     )
 
     class Meta:
-        verbose_name = 'Продукт'
-        verbose_name_plural = 'Продукты'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['original_id', 'category'],
-                name='unique_product_per_category'
-            )
-        ]
+        verbose_name = "Продукт"
+        verbose_name_plural = "Продукты"
+        constraints = [models.UniqueConstraint(fields=["original_id", "category"], name="unique_product_per_category")]
 
     def __str__(self):
-        return f'{self.name} ({self.model})'
+        return f"{self.name} ({self.model})"
 
 
 class Parameter(models.Model):
@@ -141,17 +133,18 @@ class Parameter(models.Model):
     Используется для реализации динамических (настраиваемых) полей товаров.
     Например: "Диагональ (дюйм)", "Цвет", "Встроенная память (Гб)".
     """
+
     name = models.CharField(
         max_length=100,
-        verbose_name='Название характеристики',
+        verbose_name="Название характеристики",
         unique=True,
-        help_text='Название свойства товара (например: "Диагональ (дюйм)")'
+        help_text='Название свойства товара (например: "Диагональ (дюйм)")',
     )
 
     class Meta:
-        verbose_name = 'Параметр'
-        verbose_name_plural = 'Параметры'
-        ordering = ['name']
+        verbose_name = "Параметр"
+        verbose_name_plural = "Параметры"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -161,19 +154,20 @@ class ProductParameter(models.Model):
     """
     Связь товара с его характеристиками.
     """
+
     product = models.ForeignKey(
         Product,
-        verbose_name='Продукт',
-        related_name='product_parameters',
+        verbose_name="Продукт",
+        related_name="product_parameters",
         on_delete=models.CASCADE,
-        help_text='Товар, к которому привязана характеристика'
+        help_text="Товар, к которому привязана характеристика",
     )
     parameter = models.ForeignKey(
         Parameter,
-        verbose_name='Параметр',
-        related_name='product_parameters',
+        verbose_name="Параметр",
+        related_name="product_parameters",
         on_delete=models.CASCADE,
-        help_text='Наименование характеристики из справочника'
+        help_text="Наименование характеристики из справочника",
     )
     value = models.CharField(
         max_length=255,
@@ -182,17 +176,12 @@ class ProductParameter(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Параметр товара'
-        verbose_name_plural = 'Параметры товаров'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['product', 'parameter'],
-                name='unique_parameter_for_product'
-            )
-        ]
+        verbose_name = "Параметр товара"
+        verbose_name_plural = "Параметры товаров"
+        constraints = [models.UniqueConstraint(fields=["product", "parameter"], name="unique_parameter_for_product")]
 
     def __str__(self):
-        return f'{self.product.name} - {self.parameter.name}: {self.value}'
+        return f"{self.product.name} - {self.parameter.name}: {self.value}"
 
 
 class Contact(models.Model):
@@ -200,10 +189,11 @@ class Contact(models.Model):
     Адреса доставки пользователей.
     Один пользователь может иметь несколько адресов для оформления заказов.
     """
+
     user = models.ForeignKey(
-        'auth.User',
-        verbose_name='Пользователь',
-        related_name='contacts',
+        "auth.User",
+        verbose_name="Пользователь",
+        related_name="contacts",
         on_delete=models.CASCADE,
         help_text='Владелец адреса доставки'
     )
@@ -248,11 +238,11 @@ class Contact(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Контакт'
-        verbose_name_plural = 'Контакты'
+        verbose_name = "Контакт"
+        verbose_name_plural = "Контакты"
 
     def __str__(self):
-        return f'{self.city}, ул. {self.street}, д. {self.house}'
+        return f"{self.city}, ул. {self.street}, д. {self.house}"
 
 
 class Order(models.Model):
@@ -261,50 +251,48 @@ class Order(models.Model):
     Статус 'basket' используется для реализации функционала корзины покупок.
     Остальные статусы отражают жизненный цикл заказа.
     """
+
     STATUS_CHOICES = (
-        ('basket', 'Статус корзины'),
-        ('new', 'Новый'),
-        ('confirmed', 'Подтвержден'),
-        ('assembled', 'Собран'),
-        ('sent', 'Отправлен'),
-        ('delivered', 'Доставлен'),
-        ('canceled', 'Отменен'),
+        ("basket", "Статус корзины"),
+        ("new", "Новый"),
+        ("confirmed", "Подтвержден"),
+        ("assembled", "Собран"),
+        ("sent", "Отправлен"),
+        ("delivered", "Доставлен"),
+        ("canceled", "Отменен"),
     )
 
     user = models.ForeignKey(
-        'auth.User',
-        verbose_name='Пользователь',
-        related_name='orders',
+        "auth.User",
+        verbose_name="Пользователь",
+        related_name="orders",
         on_delete=models.CASCADE,
         db_index=True,
-        help_text='Покупатель, оформивший заказ'
+        help_text="Покупатель, оформивший заказ",
     )
-    dt = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания'
-    )
+    dt = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     state = models.CharField(
         max_length=15,
-        verbose_name='Статус',
+        verbose_name="Статус",
         choices=STATUS_CHOICES,
-        default='basket',
+        default="basket",
         db_index=True,
-        help_text='Текущий статус заказа'
+        help_text="Текущий статус заказа",
     )
     contact = models.ForeignKey(
         Contact,
-        verbose_name='Контакт',
+        verbose_name="Контакт",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        help_text='Адрес доставки (заполняется при подтверждении заказа из корзины)'
+        help_text="Адрес доставки (заполняется при подтверждении заказа из корзины)",
     )
 
     class Meta:
-        verbose_name = 'Заказ'
-        verbose_name_plural = 'Заказы'
-        ordering = ('-dt',)
+        verbose_name = "Заказ"
+        verbose_name_plural = "Заказы"
+        ordering = ("-dt",)
 
     def total_sum(self):
         """Общая сумма заказа"""
@@ -320,12 +308,13 @@ class OrderItem(models.Model):
     Дублирует поле shop для возможности быстрой группировки товаров
     по поставщикам при формировании накладных.
     """
+
     order = models.ForeignKey(
         Order,
-        verbose_name='Заказ',
-        related_name='ordered_items',
+        verbose_name="Заказ",
+        related_name="ordered_items",
         on_delete=models.CASCADE,
-        help_text='Заказ, в который входит данная позиция'
+        help_text="Заказ, в который входит данная позиция",
     )
     product = models.ForeignKey(
         Product,
@@ -352,17 +341,18 @@ class OrderItem(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Позиция заказа'
-        verbose_name_plural = 'Позиции заказа'
+        verbose_name = "Позиция заказа"
+        verbose_name_plural = "Позиции заказа"
 
     def __str__(self):
-        return f'{self.product.name} (x{self.quantity})'
+        return f"{self.product.name} (x{self.quantity})"
 
 
 class ConfirmEmailToken(models.Model):
     """
     Токен для подтверждения email пользователя при регистрации.
     """
+
     user = models.ForeignKey(
         'auth.User',
         verbose_name='Пользователь',
@@ -381,8 +371,8 @@ class ConfirmEmailToken(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Токен подтверждения Email'
-        verbose_name_plural = 'Токены подтверждения Email'
+        verbose_name = "Токен подтверждения Email"
+        verbose_name_plural = "Токены подтверждения Email"
 
     def __str__(self):
-        return f'Token for {self.user.username}'
+        return f"Token for {self.user.username}"
