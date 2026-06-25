@@ -76,11 +76,8 @@ class BasketAPIView(APIView):
             # Проверка доступности магазина для заказов
             if not product.category.shop.state:
                 return Response(
-                    {
-                        "Status": False,
-                        "Errors": f'Магазин "{product.category.shop.name}" временно не принимает заказы',
-                    },
-                    status=400,
+                    {'Status': False, 'Errors': f'Магазин {product.category.shop.name} временно не принимает заказы'},
+                    status=400
                 )
 
             # Поиск или создание корзины (статус заказа - basket)
@@ -123,7 +120,7 @@ class BasketAPIView(APIView):
                     price=product.price,  # Фиксация цены товара
                 )
 
-            return Response({"Status": True}, status=200)
+            return Response({'Status': True}, status=status.HTTP_201_CREATED)
 
         except Product.DoesNotExist:
             return Response({"Status": False, "Errors": "Товар не найден"}, status=404)
