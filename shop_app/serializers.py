@@ -41,6 +41,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+class YAMLUploadSerializer(serializers.Serializer):
+    """
+    Сериализатор для валидации загружаемого YAML файла
+    """
+
+    file = serializers.FileField(help_text="YAML файл с прайс-листом поставщика")
+
+
 class ProductParameterSerializer(serializers.ModelSerializer):
     """
     Сериализатор для вывода названия параметра и его значения
