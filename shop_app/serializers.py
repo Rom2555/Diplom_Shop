@@ -41,14 +41,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
-class YAMLUploadSerializer(serializers.Serializer):
-    """
-    Сериализатор для валидации загружаемого YAML файла
-    """
-
-    file = serializers.FileField(help_text="YAML файл с прайс-листом поставщика")
-
-
 class ProductParameterSerializer(serializers.ModelSerializer):
     """
     Сериализатор для вывода названия параметра и его значения
@@ -225,14 +217,12 @@ class ShopStateSerializer(serializers.Serializer):
 
 
 class OrderStatusSerializer(serializers.Serializer):
-
     """Сериализатор для изменения статуса заказа"""
     order_id = serializers.IntegerField(help_text='ID заказа')
     state = serializers.CharField(help_text='Новый статус (new, confirmed, sent...)')
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
-
     """Сериализатор для установки нового пароля"""
     user_id = serializers.IntegerField(help_text='ID пользователя из письма')
     token = serializers.CharField(help_text='Токен из письма')
