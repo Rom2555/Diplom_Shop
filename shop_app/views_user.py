@@ -9,15 +9,27 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from shop_app.mail import send_password_reset_email, send_registration_email
 from shop_app.models import ConfirmEmailToken
-from shop_app.serializers import RegisterSerializer, TokenConfirmSerializer, ResetPasswordQuerySerializer, \
-    PasswordResetConfirmSerializer
+from shop_app.serializers import (
+    PasswordResetConfirmSerializer,
+    RegisterSerializer,
+    ResetPasswordQuerySerializer,
+    TokenConfirmSerializer,
+)
 
 
 @extend_schema(
     tags=["User"],
     summary="Подтверждение email и активация аккаунта",
     request=TokenConfirmSerializer,
-    responses={200: {"type": "object", "properties": {"Status": {"type": "boolean"}, "Message": {"type": "string"}}}},
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "Status": {"type": "boolean"},
+                "Message": {"type": "string"},
+            },
+        }
+    },
 )
 class RegisterConfirmView(APIView):
 
@@ -29,14 +41,19 @@ class RegisterConfirmView(APIView):
         try:
             token_obj = ConfirmEmailToken.objects.get(key=token)
             if token_obj.user.is_active:
-                return Response({"Status": False, "Error": "Аккаунт уже подтвержден"}, status=400)
+                return Response(
+                    {"Status": False, "Error": "Аккаунт уже подтвержден"}, status=400
+                )
 
             token_obj.user.is_active = True  # Активация пользователя
             token_obj.user.save()
             token_obj.delete()  # Удаление токена после использования
 
             return Response(
-                {"Status": True, "Message": "Успешная регистрация! Вы можете войти под своим логином/паролем"}
+                {
+                    "Status": True,
+                    "Message": "Успешная регистрация! Вы можете войти под своим логином/паролем",
+                }
             )
         except ConfirmEmailToken.DoesNotExist:
             return Response({"Status": False, "Error": "Неверный токен"}, status=400)
@@ -72,7 +89,10 @@ class RegisterAccount(APIView):
         send_registration_email(user, token)
 
         return Response(
-            {"Status": True, "messages": "На ваш email отправлено письмо для подтверждения регистрации"},
+            {
+                "Status": True,
+                "messages": "На ваш email отправлено письмо для подтверждения регистрации",
+            },
             status=status.HTTP_201_CREATED,
         )
 
@@ -104,7 +124,10 @@ class ResetPasswordView(APIView):
             pass  # Безопасность. Не сообщать что пользователь не найден
 
         return Response(
-            {"Status": True, "messages": "На ваш email отправлено письмо для сброса пароля."},
+            {
+                "Status": True,
+                "messages": "На ваш email отправлено письмо для сброса пароля.",
+            },
         )
 
 
@@ -123,12 +146,20 @@ class ResetPasswordConfirmView(APIView):
         new_password = request.data.get("new_password")
 
         if not all([user_id, token, new_password]):
-            return Response({"Status": False, "Error": "Заполните все поля: user_id, token, new_password"}, status=400)
+            return Response(
+                {
+                    "Status": False,
+                    "Error": "Заполните все поля: user_id, token, new_password",
+                },
+                status=400,
+            )
 
         try:
             user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
-            return Response({"Status": False, "Error": "Пользователь не найден"}, status=400)
+            return Response(
+                {"Status": False, "Error": "Пользователь не найден"}, status=400
+            )
 
         # Проверка валидности токена
         if default_token_generator.check_token(user, token):

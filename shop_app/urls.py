@@ -2,7 +2,13 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from shop_app.views import ContactViewSet, HealthCheckView, ProductViewSet
-from shop_app.views_orders import BasketAPIView, BasketDeleteView, OrderConfirmView, OrderStatusView, OrderViewSet
+from shop_app.views_orders import (
+    BasketAPIView,
+    BasketDeleteView,
+    OrderConfirmView,
+    OrderStatusView,
+    OrderViewSet,
+)
 from shop_app.views_partner import PartnerOrdersView, PartnerStateView, PartnerUpdate
 from shop_app.views_user import (
     CustomTokenObtainPairView,
@@ -34,7 +40,9 @@ urlpatterns = [
     path("partner/orders/", PartnerOrdersView.as_view(), name="partner-orders"),
     # Регистрация и подтверждение пользователя
     path("user/register/", RegisterAccount.as_view(), name="user-register"),
-    path("user/register/confirm/", RegisterConfirmView.as_view(), name="register-confirm"),
+    path(
+        "user/register/confirm/", RegisterConfirmView.as_view(), name="register-confirm"
+    ),
     # JWT (вход и обновление токена)
     path("user/login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("user/token/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
@@ -47,7 +55,11 @@ urlpatterns = [
     path("order/status/", OrderStatusView.as_view(), name="order-status"),
     # Восстановление пароля
     path("user/password/reset/", ResetPasswordView.as_view(), name="password-reset"),
-    path("user/password/reset/confirm/", ResetPasswordConfirmView.as_view(), name="password-reset-confirm"),
+    path(
+        "user/password/reset/confirm/",
+        ResetPasswordConfirmView.as_view(),
+        name="password-reset-confirm",
+    ),
     # Подключение роутера с ViewSet
     path("", include(router.urls)),
 ]

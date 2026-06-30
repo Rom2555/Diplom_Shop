@@ -24,5 +24,9 @@ urlpatterns = [
     path("api/v1/", include(("shop_app.urls", "shop_app"), namespace="shop_app")),
     # Подключение Swagger
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
 ]

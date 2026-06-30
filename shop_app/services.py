@@ -1,6 +1,13 @@
 from django.db import transaction
 
-from shop_app.models import Category, OrderItem, Parameter, Product, ProductParameter, Shop
+from shop_app.models import (
+    Category,
+    OrderItem,
+    Parameter,
+    Product,
+    ProductParameter,
+    Shop,
+)
 
 
 # Декоратор транзакции
@@ -21,7 +28,9 @@ def import_shop_data_from_yaml(yaml_data):
         try:
             Category.objects.get(original_id=cat_data["id"], shop=shop)
         except Category.DoesNotExist:
-            Category.objects.create(original_id=cat_data["id"], name=cat_data["name"], shop=shop)
+            Category.objects.create(
+                original_id=cat_data["id"], name=cat_data["name"], shop=shop
+            )
 
     # Удаление товаров магазина, которых нет в заказах, перед обновлением прайса
     safe_to_delete = Product.objects.filter(category__shop=shop).exclude(

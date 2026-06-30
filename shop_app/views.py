@@ -21,7 +21,11 @@ from .serializers import ProductSerializer
     ),
 )
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Product.objects.all().select_related("category").prefetch_related("product_parameters")
+    queryset = (
+        Product.objects.all()
+        .select_related("category")
+        .prefetch_related("product_parameters")
+    )
     serializer_class = ProductSerializer
     lookup_field = "original_id"
 
@@ -39,10 +43,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         summary="Получить контакт по id",
         tags=["Contacts"],
     ),
-    destroy=extend_schema(
-        summary='Удалить контакт по id',
-        tags=['Contacts']
-    ),
+    destroy=extend_schema(summary="Удалить контакт по id", tags=["Contacts"]),
 )
 class ContactViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]

@@ -6,7 +6,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from shop_app.models import Order, Shop
-from shop_app.serializers import OrderSerializer, ShopIdQuerySerializer, YAMLUploadSerializer, ShopStateSerializer
+from shop_app.serializers import (
+    OrderSerializer,
+    ShopIdQuerySerializer,
+    ShopStateSerializer,
+    YAMLUploadSerializer,
+)
 from shop_app.services import import_shop_data_from_yaml
 
 
@@ -17,7 +22,11 @@ from shop_app.services import import_shop_data_from_yaml
         "multipart/form-data": {
             "type": "object",
             "properties": {
-                "file": {"type": "string", "format": "binary", "description": "YAML файл с прайс-листом поставщика"}
+                "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "YAML файл с прайс-листом поставщика",
+                }
             },
             "required": ["file"],
         }
@@ -41,10 +50,14 @@ class PartnerUpdate(APIView):
             yaml_data = yaml.safe_load(yaml_file.read())
         except yaml.YAMLError:
             return Response(
-                {"Status": False, "Error": "Неверный формат YAML файла"}, status=status.HTTP_400_BAD_REQUEST
+                {"Status": False, "Error": "Неверный формат YAML файла"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
-            return Response({"Status": False, "Error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"Status": False, "Error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         # Передача данных сервису
         result = import_shop_data_from_yaml(yaml_data)
@@ -70,7 +83,9 @@ class PartnerStateView(APIView):
         state = request.data.get("state")
 
         if shop_id is None or state is None:
-            return Response({"Status": False, "Errors": "Укажите shop_id и state"}, status=400)
+            return Response(
+                {"Status": False, "Errors": "Укажите shop_id и state"}, status=400
+            )
 
         try:
             shop = Shop.objects.get(id=shop_id)
@@ -78,7 +93,9 @@ class PartnerStateView(APIView):
             shop.save()
             return Response({"Status": True})
         except Shop.DoesNotExist:
-            return Response({"Status": False, "Errors": "Магазин не найден"}, status=404)
+            return Response(
+                {"Status": False, "Errors": "Магазин не найден"}, status=404
+            )
 
 
 @extend_schema(
@@ -96,7 +113,7 @@ class PartnerOrdersView(APIView):
         if not shop_id:
             return Response({"Status": False, "Error": "Укажите shop_id"}, status=400)
         if not Shop.objects.filter(id=shop_id).exists():
-            return Response({'Status': False, 'Error': 'Магазин не найден'}, status=400)
+            return Response({"Status": False, "Error": "Магазин не найден"}, status=400)
 
         # Поиск заказов с товарами этого магазина, кроме состояния - корзина
         orders = (
@@ -106,5 +123,7 @@ class PartnerOrdersView(APIView):
             .prefetch_related("ordered_items__product", "contact")
         )
 
-        serializer = OrderSerializer(orders, many=True, context={"request_shop_id": int(shop_id)})
+        serializer = OrderSerializer(
+            orders, many=True, context={"request_shop_id": int(shop_id)}
+        )
         return Response(serializer.data)
