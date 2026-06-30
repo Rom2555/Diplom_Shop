@@ -13,15 +13,12 @@ class Shop(models.Model):
 
     name = models.CharField(
         max_length=100,
-        verbose_name='Название',
+        verbose_name="Название",
         unique=True,
-        help_text='Уникальное название магазина (поставщика)'
+        help_text="Уникальное название магазина (поставщика)",
     )
     url = models.URLField(
-        verbose_name='Ссылка',
-        null=True,
-        blank=True,
-        help_text='URL поставщика'
+        verbose_name="Ссылка", null=True, blank=True, help_text="URL поставщика"
     )
     state = models.BooleanField(
         verbose_name="Статус приёма заказов",
@@ -47,13 +44,12 @@ class Category(models.Model):
     """
 
     original_id = models.PositiveIntegerField(
-        verbose_name='ID категории',
-        help_text='ID категории из прайс-листа поставщика'
+        verbose_name="ID категории", help_text="ID категории из прайс-листа поставщика"
     )
     name = models.CharField(
         max_length=100,
-        verbose_name='Название',
-        help_text='Название категории (например: Смартфоны)'
+        verbose_name="Название",
+        help_text="Название категории (например: Смартфоны)",
     )
     shop = models.ForeignKey(
         Shop,
@@ -66,7 +62,11 @@ class Category(models.Model):
     class Meta:
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
-        constraints = [models.UniqueConstraint(fields=["original_id", "shop"], name="unique_category_per_shop")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["original_id", "shop"], name="unique_category_per_shop"
+            )
+        ]
 
     def __str__(self):
         return f"{self.name} (ID: {self.original_id})"
@@ -79,13 +79,11 @@ class Product(models.Model):
     """
 
     original_id = models.PositiveIntegerField(
-        verbose_name='ID товара',
-        help_text='Уникальный идентификатор товара из системы поставщика'
+        verbose_name="ID товара",
+        help_text="Уникальный идентификатор товара из системы поставщика",
     )
     name = models.CharField(
-        max_length=255,
-        verbose_name='Название',
-        help_text='Полное название товара'
+        max_length=255, verbose_name="Название", help_text="Полное название товара"
     )
     model = models.CharField(
         max_length=255,
@@ -115,13 +113,18 @@ class Product(models.Model):
         help_text="Рекомендуемая розничная цена (РРЦ)",
     )
     quantity = models.PositiveIntegerField(
-        verbose_name="Количество на складе", help_text="Текущий остаток на складе поставщика"
+        verbose_name="Количество на складе",
+        help_text="Текущий остаток на складе поставщика",
     )
 
     class Meta:
         verbose_name = "Продукт"
         verbose_name_plural = "Продукты"
-        constraints = [models.UniqueConstraint(fields=["original_id", "category"], name="unique_product_per_category")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["original_id", "category"], name="unique_product_per_category"
+            )
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.model})"
@@ -171,14 +174,18 @@ class ProductParameter(models.Model):
     )
     value = models.CharField(
         max_length=255,
-        verbose_name='Значение',
-        help_text='Значение характеристики (например: "6.5" или "золотистый")'
+        verbose_name="Значение",
+        help_text='Значение характеристики (например: "6.5" или "золотистый")',
     )
 
     class Meta:
         verbose_name = "Параметр товара"
         verbose_name_plural = "Параметры товаров"
-        constraints = [models.UniqueConstraint(fields=["product", "parameter"], name="unique_parameter_for_product")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "parameter"], name="unique_parameter_for_product"
+            )
+        ]
 
     def __str__(self):
         return f"{self.product.name} - {self.parameter.name}: {self.value}"
@@ -195,46 +202,29 @@ class Contact(models.Model):
         verbose_name="Пользователь",
         related_name="contacts",
         on_delete=models.CASCADE,
-        help_text='Владелец адреса доставки'
+        help_text="Владелец адреса доставки",
     )
     city = models.CharField(
-        max_length=50,
-        verbose_name='Город',
-        help_text='Город доставки'
+        max_length=50, verbose_name="Город", help_text="Город доставки"
     )
     street = models.CharField(
-        max_length=100,
-        verbose_name='Улица',
-        help_text='Улица доставки'
+        max_length=100, verbose_name="Улица", help_text="Улица доставки"
     )
     house = models.CharField(
-        max_length=15,
-        verbose_name='Дом',
-        blank=True,
-        help_text='Номер дома'
+        max_length=15, verbose_name="Дом", blank=True, help_text="Номер дома"
     )
     structure = models.CharField(
-        max_length=15,
-        verbose_name='Корпус',
-        blank=True,
-        help_text='Номер корпуса'
+        max_length=15, verbose_name="Корпус", blank=True, help_text="Номер корпуса"
     )
     building = models.CharField(
-        max_length=15,
-        verbose_name='Строение',
-        blank=True,
-        help_text='Номер строения'
+        max_length=15, verbose_name="Строение", blank=True, help_text="Номер строения"
     )
     apartment = models.CharField(
-        max_length=15,
-        verbose_name='Квартира',
-        blank=True,
-        help_text='Номер квартиры')
+        max_length=15, verbose_name="Квартира", blank=True, help_text="Номер квартиры"
+    )
 
     phone = models.CharField(
-        max_length=20,
-        verbose_name='Телефон',
-        help_text='Контактный номер телефона'
+        max_length=20, verbose_name="Телефон", help_text="Контактный номер телефона"
     )
 
     class Meta:
@@ -318,26 +308,25 @@ class OrderItem(models.Model):
     )
     product = models.ForeignKey(
         Product,
-        verbose_name='Продукт',
+        verbose_name="Продукт",
         on_delete=models.PROTECT,
-        help_text='Ссылка на карточку товара'
+        help_text="Ссылка на карточку товара",
     )
     shop = models.ForeignKey(
         Shop,
-        verbose_name='Магазин',
+        verbose_name="Магазин",
         on_delete=models.PROTECT,
-        help_text='Поставщик данного товара в момент заказа'
+        help_text="Поставщик данного товара в момент заказа",
     )
     quantity = models.PositiveIntegerField(
-        verbose_name='Количество',
-        help_text='Заказанное количество'
+        verbose_name="Количество", help_text="Заказанное количество"
     )
 
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name='Цена',
-        help_text='Цена за единицу товара на момент оформления'
+        verbose_name="Цена",
+        help_text="Цена за единицу товара на момент оформления",
     )
 
     class Meta:
@@ -354,21 +343,16 @@ class ConfirmEmailToken(models.Model):
     """
 
     user = models.ForeignKey(
-        'auth.User',
-        verbose_name='Пользователь',
-        related_name='confirm_email_tokens',
-        on_delete=models.CASCADE
+        "auth.User",
+        verbose_name="Пользователь",
+        related_name="confirm_email_tokens",
+        on_delete=models.CASCADE,
     )
     created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания токена'
+        auto_now_add=True, verbose_name="Дата создания токена"
     )
     # Генерация случайного ключа при создании объекта
-    key = models.UUIDField(
-        verbose_name='Ключ',
-        default=uuid.uuid4,
-        unique=True
-    )
+    key = models.UUIDField(verbose_name="Ключ", default=uuid.uuid4, unique=True)
 
     class Meta:
         verbose_name = "Токен подтверждения Email"

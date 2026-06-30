@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.db.models import F
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,7 +12,8 @@ from shop_app.serializers import (
     AddToBasketSerializer,
     BasketSerializer,
     ConfirmOrderSerializer,
-    OrderSerializer, OrderStatusSerializer,
+    OrderSerializer,
+    OrderStatusSerializer,
 )
 
 
@@ -76,8 +77,11 @@ class BasketAPIView(APIView):
             # Проверка доступности магазина для заказов
             if not product.category.shop.state:
                 return Response(
-                    {'Status': False, 'Errors': f'Магазин {product.category.shop.name} временно не принимает заказы'},
-                    status=400
+                    {
+                        "Status": False,
+                        "Errors": f"Магазин {product.category.shop.name} временно не принимает заказы",
+                    },
+                    status=400,
                 )
 
             # Поиск или создание корзины (статус заказа - basket)
@@ -120,7 +124,7 @@ class BasketAPIView(APIView):
                     price=product.price,  # Фиксация цены товара
                 )
 
-            return Response({'Status': True}, status=status.HTTP_201_CREATED)
+            return Response({"Status": True}, status=status.HTTP_201_CREATED)
 
         except Product.DoesNotExist:
             return Response({"Status": False, "Errors": "Товар не найден"}, status=404)

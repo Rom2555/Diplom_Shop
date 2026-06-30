@@ -13,13 +13,21 @@ class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     username = serializers.CharField(
         help_text="Имя пользователя",
-        validators=[UniqueValidator(queryset=User.objects.all(), message="Пользователь с таким именем уже существует")],
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="Пользователь с таким именем уже существует",
+            )
+        ],
     )
     email = serializers.EmailField(
         help_text="Электронная почта",
         required=True,  # Обязательное поле для регистрации
         validators=[
-            UniqueValidator(queryset=User.objects.all(), message="Пользователь с такой почтой уже зарегистрирован")
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="Пользователь с такой почтой уже зарегистрирован",
+            )
         ],
     )
 
@@ -94,7 +102,16 @@ class ContactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contact
-        fields = ("id", "city", "street", "house", "structure", "building", "apartment", "phone")
+        fields = (
+            "id",
+            "city",
+            "street",
+            "house",
+            "structure",
+            "building",
+            "apartment",
+            "phone",
+        )
         read_only_fields = ("id",)
 
 
@@ -134,8 +151,12 @@ class AddToBasketSerializer(serializers.Serializer):
     """
 
     product_id = serializers.IntegerField(write_only=True, help_text="ID товара")
-    shop_id = serializers.IntegerField(write_only=True, help_text="ID магазина (поставщика)")
-    quantity = serializers.IntegerField(write_only=True, default=1, help_text="Количество (по умолчанию 1)")
+    shop_id = serializers.IntegerField(
+        write_only=True, help_text="ID магазина (поставщика)"
+    )
+    quantity = serializers.IntegerField(
+        write_only=True, default=1, help_text="Количество (по умолчанию 1)"
+    )
 
 
 class ConfirmOrderSerializer(serializers.Serializer):
@@ -143,7 +164,9 @@ class ConfirmOrderSerializer(serializers.Serializer):
     Сериализатор для подтверждения заказа из корзины
     """
 
-    contact_id = serializers.IntegerField(write_only=True, help_text="ID адреса доставки")
+    contact_id = serializers.IntegerField(
+        write_only=True, help_text="ID адреса доставки"
+    )
 
 
 class OrderItemForOrderSerializer(serializers.ModelSerializer):
@@ -165,7 +188,16 @@ class ContactForOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contact
-        fields = ("id", "city", "street", "house", "structure", "building", "apartment", "phone")
+        fields = (
+            "id",
+            "city",
+            "street",
+            "house",
+            "structure",
+            "building",
+            "apartment",
+            "phone",
+        )
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -214,24 +246,26 @@ class ShopIdQuerySerializer(serializers.Serializer):
 class ResetPasswordQuerySerializer(serializers.Serializer):
     """Сериализатор для сброса пароля"""
 
-    email = serializers.EmailField(help_text='Email пользователя')
+    email = serializers.EmailField(help_text="Email пользователя")
 
 
 class ShopStateSerializer(serializers.Serializer):
     """Сериализатор для изменения статуса магазина"""
 
-    shop_id = serializers.IntegerField(help_text='ID магазина')
-    state = serializers.BooleanField(help_text='Статус приема заказов (True/False)')
+    shop_id = serializers.IntegerField(help_text="ID магазина")
+    state = serializers.BooleanField(help_text="Статус приема заказов (True/False)")
 
 
 class OrderStatusSerializer(serializers.Serializer):
     """Сериализатор для изменения статуса заказа"""
-    order_id = serializers.IntegerField(help_text='ID заказа')
-    state = serializers.CharField(help_text='Новый статус (new, confirmed, sent...)')
+
+    order_id = serializers.IntegerField(help_text="ID заказа")
+    state = serializers.CharField(help_text="Новый статус (new, confirmed, sent...)")
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     """Сериализатор для установки нового пароля"""
-    user_id = serializers.IntegerField(help_text='ID пользователя из письма')
-    token = serializers.CharField(help_text='Токен из письма')
-    new_password = serializers.CharField(help_text='Новый пароль')
+
+    user_id = serializers.IntegerField(help_text="ID пользователя из письма")
+    token = serializers.CharField(help_text="Токен из письма")
+    new_password = serializers.CharField(help_text="Новый пароль")
