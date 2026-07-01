@@ -151,7 +151,9 @@ class ResetPasswordConfirmView(APIView):
         if user and default_token_generator.check_token(user, token):
             return Response({
                 "Status": True,
-                "Message": "Ссылка подтверждена. Отправьте POST запрос с новым паролем."
+                "Message": "Ссылка подтверждена. Отправьте POST запрос с новым паролем.",
+                "uidb64": uidb64,
+                "token": token
             })
         return Response({"Status": False, "Error": "Ссылка недействительна или устарела"}, status=400)
 
@@ -159,18 +161,18 @@ class ResetPasswordConfirmView(APIView):
         tags=["User"],
         summary="Установка нового пароля",
         request=PasswordResetConfirmSerializer,
-        responses={
-            200: StatusResponseSerializer,
-            400: StatusResponseSerializer
-        }
     )
-    def post(self, request, uidb64, token, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         serializer = PasswordResetConfirmSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({
                 "Status": False,
                 "Error": serializer.errors
             }, status=400)
+
+        # uid и token из тела запроса
+        uidb64 = serializer.validated_data.get('uidb64')
+        token = serializer.validated_data.get('token')
 
         user = self.get_user(uidb64)
         if user and default_token_generator.check_token(user, token):

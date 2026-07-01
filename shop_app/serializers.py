@@ -266,6 +266,8 @@ class OrderStatusSerializer(serializers.Serializer):
 class PasswordResetConfirmSerializer(serializers.Serializer):
     """Сериализатор для установки нового пароля"""
 
+    uidb64 = serializers.CharField()
+    token = serializers.CharField()
     new_password = serializers.CharField(
         min_length=8,
         help_text='Новый пароль (минимум 8 символов)',
