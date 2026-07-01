@@ -56,7 +56,7 @@ urlpatterns = [
     # Восстановление пароля
     path("user/password/reset/", ResetPasswordView.as_view(), name="password-reset"),
     path(
-        "user/password/reset/confirm/",
+        "user/password/reset/confirm/<str:uidb64>/<str:token>/",
         ResetPasswordConfirmView.as_view(),
         name="password-reset-confirm",
     ),

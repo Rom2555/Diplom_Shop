@@ -173,6 +173,9 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
+# Срок действия ссылки сброса пароля (1 час)
+PASSWORD_RESET_TIMEOUT = 3600
+
 # Настройки Swagger
 SPECTACULAR_SETTINGS = {
     "TITLE": "Diplom Shop API",

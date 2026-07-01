@@ -266,6 +266,15 @@ class OrderStatusSerializer(serializers.Serializer):
 class PasswordResetConfirmSerializer(serializers.Serializer):
     """Сериализатор для установки нового пароля"""
 
-    user_id = serializers.IntegerField(help_text="ID пользователя из письма")
-    token = serializers.CharField(help_text="Токен из письма")
-    new_password = serializers.CharField(help_text="Новый пароль")
+    new_password = serializers.CharField(
+        min_length=8,
+        help_text='Новый пароль (минимум 8 символов)',
+        write_only=True
+    )
+
+
+class StatusResponseSerializer(serializers.Serializer):
+    """Сериализатор для стандартных ответов API"""
+    Status = serializers.BooleanField(help_text="Успешность операции")
+    Message = serializers.CharField(required=False, help_text="Сообщение об успехе")
+    Error = serializers.CharField(required=False, help_text="Сообщение об ошибке")

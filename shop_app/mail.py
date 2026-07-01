@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 from diplom_shop import settings
 from shop_app.models import Order
@@ -120,16 +122,16 @@ def send_registration_email(user, token):
 
 def send_password_reset_email(user, token):
     """Письмо для сброса пароля"""
-    swagger_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/docs/"
+
+    # ID пользователя в base64
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+    reset_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}/api/v1/user/password/reset/confirm/{uid}/{token}/"
 
     message = (
-        f"Для сброса пароля перейдите в Swagger: {swagger_url}\n\n"
-        f"Найдите эндпоинт Reset Password Confirm (POST) и отправьте следующий JSON:\n\n"
-        f"{{\n"
-        f'  "user_id": {user.pk},\n'
-        f'  "token": "{token}",\n'
-        f'  "new_password": "Ваш_Новый_Пароль"\n'
-        f"}}"
+        f"Для сброса пароля перейдите по следующей ссылке:\n\n"
+        f"{reset_url}\n\n"
+        f"Ссылка действительна в течение 1 часа."
     )
 
     try:
