@@ -47,12 +47,16 @@ class PartnerUpdate(APIView):
         try:
             # Чтение файла и парсинг YAML
             # safe_load защита от выполнения кода в YAML
-            yaml_data = yaml.safe_load(yaml_file.read())
+            yaml_data = yaml.safe_load(yaml_file.read().decode('utf8'))
         except yaml.YAMLError:
             return Response(
                 {"Status": False, "Error": "Неверный формат YAML файла"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        except UnicodeDecodeError:
+            return Response(
+                {"Status": False, "Error": f"Файл должен быть в кодировке UTF-8"},
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(
                 {"Status": False, "Error": str(e)},
