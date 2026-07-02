@@ -14,7 +14,9 @@ from shop_app.models import ConfirmEmailToken
 from shop_app.serializers import (
     RegisterSerializer,
     ResetPasswordQuerySerializer,
-    TokenConfirmSerializer, StatusResponseSerializer, PasswordResetConfirmSerializer,
+    TokenConfirmSerializer,
+    StatusResponseSerializer,
+    PasswordResetConfirmSerializer,
 )
 
 
@@ -22,15 +24,7 @@ from shop_app.serializers import (
     tags=["User"],
     summary="Подтверждение email и активация аккаунта",
     request=TokenConfirmSerializer,
-    responses={
-        200: {
-            "type": "object",
-            "properties": {
-                "Status": {"type": "boolean"},
-                "Message": {"type": "string"},
-            },
-        }
-    },
+    responses={200: StatusResponseSerializer, 400: StatusResponseSerializer},
 )
 class RegisterConfirmView(APIView):
 
@@ -64,14 +58,7 @@ class RegisterConfirmView(APIView):
     tags=["User"],
     summary="Регистрация нового пользователя с выдачей JWT токенов и отправкой письма подтверждения",
     request=RegisterSerializer,
-    responses={
-        201: {
-            "type": "object",
-            "properties": {
-                "Status": {"type": "boolean"},
-            },
-        }
-    },
+    responses={201: StatusResponseSerializer},
 )
 class RegisterAccount(APIView):
     permission_classes = [AllowAny]
@@ -102,7 +89,7 @@ class RegisterAccount(APIView):
     tags=["User"],
     summary="Запрос на сброс пароля. Отправляет ссылку с токеном на email",
     request=ResetPasswordQuerySerializer,
-    responses={200: {"type": "object", "properties": {"Status": {"type": "boolean"}}}},
+    responses={200: StatusResponseSerializer},
 )
 class ResetPasswordView(APIView):
     permission_classes = [AllowAny]
@@ -112,17 +99,10 @@ class ResetPasswordView(APIView):
         if not email:
             return Response({"Status": False, "Error": "Укажите email"}, status=400)
 
-        try:
-            user = User.objects.filter(email=email).first()
-            if not user:
-                pass
-            else:
-                # Токен
-                token = default_token_generator.make_token(user)
-                # Отправка письма
-                send_password_reset_email(user, token)
-        except User.DoesNotExist:
-            pass  # Безопасность. Не сообщать что пользователь не найден
+        user = User.objects.filter(email=email).first()
+        if user:
+            token = default_token_generator.make_token(user)
+            send_password_reset_email(user, token)
 
         return Response(
             {
@@ -143,17 +123,21 @@ class ResetPasswordValidateView(APIView):
         responses={200: StatusResponseSerializer, 400: StatusResponseSerializer}
     )
     def get(self, request, uidb64, token, *args, **kwargs):
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.filter(pk=uid).first()
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"Status": False, "Error": "Неверная ссылка"}, status=400)
 
-        if user and default_token_generator.check_token(user, token):
+        if default_token_generator.check_token(user, token):
             return Response({
                 "Status": True,
                 "Message": "Сброс пароля подверждён, можно установить новый пароль",
                 "uidb64": uidb64,
                 "token": token
             })
-        return Response({"Status": False, "Error": "Ссылка недействительна"}, status=400)
+
+        return Response({"Status": False, "Error": "Ссылка недействительна или истек срок её действия"}, status=400)
 
 
 # Класс для установки пароля (POST)
@@ -174,14 +158,16 @@ class ResetPasswordConfirmView(APIView):
                 "Error": serializer.errors
             }, status=400)
 
-        # uidb64 и token из тела запроса
         uidb64 = serializer.validated_data.get('uidb64')
         token = serializer.validated_data.get('token')
 
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.filter(pk=uid).first()
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"Status": False, "Error": "Неверные данные пользователя"}, status=400)
 
-        if user and default_token_generator.check_token(user, token):
+        if default_token_generator.check_token(user, token):
             user.set_password(serializer.validated_data['new_password'])
             user.save()
             return Response({
@@ -191,7 +177,7 @@ class ResetPasswordConfirmView(APIView):
 
         return Response({
             "Status": False,
-            "Error": "Ошибка валидации токена или пользователя"
+            "Error": "Токен недействителен или истек срок его действия"
         }, status=400)
 
 
