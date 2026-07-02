@@ -132,35 +132,39 @@ class ResetPasswordView(APIView):
         )
 
 
-class ResetPasswordConfirmView(APIView):
+# Класс для проверки ссылки (GET)
+
+class ResetPasswordValidateView(APIView):
     permission_classes = [AllowAny]
 
-    def get_user(self, uidb64):
-        """Получение пользователя из uid64"""
-        try:
-            uid = force_str(urlsafe_base64_decode(uidb64))
-            return User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            return None
-
-    @extend_schema(tags=["User"],
-                   summary="Проверка ссылки сброса пароля из письма",
-                   responses={200: StatusResponseSerializer, 400: StatusResponseSerializer})
+    @extend_schema(
+        tags=["User"],
+        summary="Проверка ссылки сброса пароля из письма",
+        responses={200: StatusResponseSerializer, 400: StatusResponseSerializer}
+    )
     def get(self, request, uidb64, token, *args, **kwargs):
-        user = self.get_user(uidb64)
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.filter(pk=uid).first()
+
         if user and default_token_generator.check_token(user, token):
             return Response({
                 "Status": True,
-                "Message": "Ссылка подтверждена. Отправьте POST запрос с новым паролем.",
+                "Message": "Сброс пароля подверждён, можно установить новый пароль",
                 "uidb64": uidb64,
                 "token": token
             })
-        return Response({"Status": False, "Error": "Ссылка недействительна или устарела"}, status=400)
+        return Response({"Status": False, "Error": "Ссылка недействительна"}, status=400)
+
+
+# Класс для установки пароля (POST)
+class ResetPasswordConfirmView(APIView):
+    permission_classes = [AllowAny]
 
     @extend_schema(
         tags=["User"],
         summary="Установка нового пароля",
         request=PasswordResetConfirmSerializer,
+        responses={200: StatusResponseSerializer, 400: StatusResponseSerializer}
     )
     def post(self, request, *args, **kwargs):
         serializer = PasswordResetConfirmSerializer(data=request.data)
@@ -170,11 +174,13 @@ class ResetPasswordConfirmView(APIView):
                 "Error": serializer.errors
             }, status=400)
 
-        # uid и token из тела запроса
+        # uidb64 и token из тела запроса
         uidb64 = serializer.validated_data.get('uidb64')
         token = serializer.validated_data.get('token')
 
-        user = self.get_user(uidb64)
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.filter(pk=uid).first()
+
         if user and default_token_generator.check_token(user, token):
             user.set_password(serializer.validated_data['new_password'])
             user.save()
