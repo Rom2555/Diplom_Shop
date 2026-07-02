@@ -52,7 +52,11 @@ def send_new_order(order: Order):
         print(f"ОШИБКА ОТПРАВКИ EMAIL КЛИЕНТУ: {e}")
 
     # 2. Письмо-накладная админу
-    admin_emails = list(User.objects.filter(is_superuser=True, is_active=True).values_list("email", flat=True))
+    admin_emails = list(
+        User.objects.filter(is_superuser=True, is_active=True).values_list(
+            "email", flat=True
+        )
+    )
     if not admin_emails:
         return
 

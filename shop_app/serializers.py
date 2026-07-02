@@ -273,14 +273,13 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     uidb64 = serializers.CharField()
     token = serializers.CharField()
     new_password = serializers.CharField(
-        min_length=8,
-        help_text='Новый пароль (минимум 8 символов)',
-        write_only=True
+        min_length=8, help_text="Новый пароль (минимум 8 символов)", write_only=True
     )
 
 
 class StatusResponseSerializer(serializers.Serializer):
     """Сериализатор для стандартных ответов API"""
+
     Status = serializers.BooleanField(help_text="Успешность операции")
     Message = serializers.CharField(required=False, help_text="Сообщение об успехе")
     Error = serializers.CharField(required=False, help_text="Сообщение об ошибке")

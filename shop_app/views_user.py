@@ -12,11 +12,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from shop_app.mail import send_password_reset_email, send_registration_email
 from shop_app.models import ConfirmEmailToken
 from shop_app.serializers import (
+    PasswordResetConfirmSerializer,
     RegisterSerializer,
     ResetPasswordQuerySerializer,
-    TokenConfirmSerializer,
     StatusResponseSerializer,
-    PasswordResetConfirmSerializer,
+    TokenConfirmSerializer,
 )
 
 
@@ -114,13 +114,14 @@ class ResetPasswordView(APIView):
 
 # Класс для проверки ссылки (GET)
 
+
 class ResetPasswordValidateView(APIView):
     permission_classes = [AllowAny]
 
     @extend_schema(
         tags=["User"],
         summary="Проверка ссылки сброса пароля из письма",
-        responses={200: StatusResponseSerializer, 400: StatusResponseSerializer}
+        responses={200: StatusResponseSerializer, 400: StatusResponseSerializer},
     )
     def get(self, request, uidb64, token, *args, **kwargs):
         try:
@@ -130,14 +131,22 @@ class ResetPasswordValidateView(APIView):
             return Response({"Status": False, "Error": "Неверная ссылка"}, status=400)
 
         if default_token_generator.check_token(user, token):
-            return Response({
-                "Status": True,
-                "Message": "Сброс пароля подверждён, можно установить новый пароль",
-                "uidb64": uidb64,
-                "token": token
-            })
+            return Response(
+                {
+                    "Status": True,
+                    "Message": "Сброс пароля подверждён, можно установить новый пароль",
+                    "uidb64": uidb64,
+                    "token": token,
+                }
+            )
 
-        return Response({"Status": False, "Error": "Ссылка недействительна или истек срок её действия"}, status=400)
+        return Response(
+            {
+                "Status": False,
+                "Error": "Ссылка недействительна или истек срок её действия",
+            },
+            status=400,
+        )
 
 
 # Класс для установки пароля (POST)
@@ -148,37 +157,36 @@ class ResetPasswordConfirmView(APIView):
         tags=["User"],
         summary="Установка нового пароля",
         request=PasswordResetConfirmSerializer,
-        responses={200: StatusResponseSerializer, 400: StatusResponseSerializer}
+        responses={200: StatusResponseSerializer, 400: StatusResponseSerializer},
     )
     def post(self, request, *args, **kwargs):
         serializer = PasswordResetConfirmSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({
-                "Status": False,
-                "Error": serializer.errors
-            }, status=400)
+            return Response({"Status": False, "Error": serializer.errors}, status=400)
 
-        uidb64 = serializer.validated_data.get('uidb64')
-        token = serializer.validated_data.get('token')
+        uidb64 = serializer.validated_data.get("uidb64")
+        token = serializer.validated_data.get("token")
 
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            return Response({"Status": False, "Error": "Неверные данные пользователя"}, status=400)
+            return Response(
+                {"Status": False, "Error": "Неверные данные пользователя"}, status=400
+            )
 
         if default_token_generator.check_token(user, token):
-            user.set_password(serializer.validated_data['new_password'])
+            user.set_password(serializer.validated_data["new_password"])
             user.save()
-            return Response({
-                "Status": True,
-                "Message": "Пароль успешно изменен"
-            })
+            return Response({"Status": True, "Message": "Пароль успешно изменен"})
 
-        return Response({
-            "Status": False,
-            "Error": "Токен недействителен или истек срок его действия"
-        }, status=400)
+        return Response(
+            {
+                "Status": False,
+                "Error": "Токен недействителен или истек срок его действия",
+            },
+            status=400,
+        )
 
 
 # Обертка для TokenObtainPairView
