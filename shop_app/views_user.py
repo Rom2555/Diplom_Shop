@@ -56,7 +56,7 @@ class RegisterConfirmView(APIView):
 
 @extend_schema(
     tags=["User"],
-    summary="Регистрация нового пользователя с выдачей JWT токенов и отправкой письма подтверждения",
+    summary="Регистрация нового пользователя с отправкой письма подтверждения",
     request=RegisterSerializer,
     responses={201: StatusResponseSerializer},
 )

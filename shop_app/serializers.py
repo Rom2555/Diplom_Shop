@@ -10,7 +10,11 @@ class RegisterSerializer(serializers.ModelSerializer):
     Сериализатор для регистрации нового пользователя
     """
 
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(
+        min_length=8,
+        write_only=True,
+        help_text="Пароль (минимум 8 символов)",
+    )
     username = serializers.CharField(
         help_text="Имя пользователя",
         validators=[
