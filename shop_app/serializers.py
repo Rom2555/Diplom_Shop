@@ -10,7 +10,11 @@ class RegisterSerializer(serializers.ModelSerializer):
     Сериализатор для регистрации нового пользователя
     """
 
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(
+        min_length=8,
+        write_only=True,
+        help_text="Пароль (минимум 8 символов)",
+    )
     username = serializers.CharField(
         help_text="Имя пользователя",
         validators=[
@@ -266,6 +270,17 @@ class OrderStatusSerializer(serializers.Serializer):
 class PasswordResetConfirmSerializer(serializers.Serializer):
     """Сериализатор для установки нового пароля"""
 
-    user_id = serializers.IntegerField(help_text="ID пользователя из письма")
-    token = serializers.CharField(help_text="Токен из письма")
-    new_password = serializers.CharField(help_text="Новый пароль")
+    uidb64 = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField(
+        min_length=8,
+        help_text='Новый пароль (минимум 8 символов)',
+        write_only=True
+    )
+
+
+class StatusResponseSerializer(serializers.Serializer):
+    """Сериализатор для стандартных ответов API"""
+    Status = serializers.BooleanField(help_text="Успешность операции")
+    Message = serializers.CharField(required=False, help_text="Сообщение об успехе")
+    Error = serializers.CharField(required=False, help_text="Сообщение об ошибке")

@@ -16,7 +16,7 @@ from shop_app.views_user import (
     RegisterAccount,
     RegisterConfirmView,
     ResetPasswordConfirmView,
-    ResetPasswordView,
+    ResetPasswordView, ResetPasswordValidateView,
 )
 
 # Роутер для ViewSet
@@ -55,10 +55,11 @@ urlpatterns = [
     path("order/status/", OrderStatusView.as_view(), name="order-status"),
     # Восстановление пароля
     path("user/password/reset/", ResetPasswordView.as_view(), name="password-reset"),
+    path('user/password/reset/confirm/', ResetPasswordConfirmView.as_view(), name='password-reset-set-new'),
     path(
-        "user/password/reset/confirm/",
-        ResetPasswordConfirmView.as_view(),
-        name="password-reset-confirm",
+        "user/password/reset/confirm/<str:uidb64>/<str:token>/",
+        ResetPasswordValidateView.as_view(),
+        name="password-reset-confirm"
     ),
     # Подключение роутера с ViewSet
     path("", include(router.urls)),
